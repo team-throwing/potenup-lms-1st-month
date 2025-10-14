@@ -1,9 +1,9 @@
-package com.lms.domain.course.spec;
+package com.lms.domain.course.spec.creation;
 
 import java.util.List;
 
 public record CreateSection(
-    String name,
     Integer seq,
+    String name,
     List<CreateContent> contents
 ) {}

@@ -1,4 +1,4 @@
-package com.lms.domain.course.spec;
+package com.lms.domain.course.spec.creation;
 
 public record CreateContent(
     String name,
