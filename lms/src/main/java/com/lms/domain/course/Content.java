@@ -1,6 +1,7 @@
 package com.lms.domain.course;
 
-import com.lms.domain.course.spec.CreateContent;
+import com.lms.domain.course.spec.creation.CreateContent;
+import com.lms.domain.course.spec.rebuid.RebuildContent;
 import lombok.Getter;
 
 @Getter
@@ -17,7 +18,7 @@ public class Content {
         this.body = body;
     }
 
-    public static Content create(CreateContent createContent) {
+    static Content create(CreateContent createContent) {
         return new Content(
             null,
             createContent.name(),
@@ -26,7 +27,12 @@ public class Content {
         );
     }
 
-    public static Content rebuild(Long id, String name, Integer seq, String body) {
-        return new Content(id, name, seq, body);
+    static Content rebuild(RebuildContent rebuildContent) {
+        return new Content(
+            rebuildContent.id(),
+            rebuildContent.name(),
+            rebuildContent.seq(),
+            rebuildContent.body()
+        );
     }
 }
