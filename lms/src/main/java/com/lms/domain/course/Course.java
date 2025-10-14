@@ -1,11 +1,12 @@
 package com.lms.domain.course;
 
-import com.lms.domain.category.Category;
-import com.lms.domain.course.spec.CreateCourse;
+import com.lms.domain.course.spec.creation.CreateCourse;
+import com.lms.domain.course.spec.rebuid.RebuildCourse;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class Course {
@@ -37,7 +38,8 @@ public class Course {
     }
 
     public static Course create(CreateCourse createCourse) throws IllegalArgumentException {
-        List<Section> sections = createCourse.sections().stream().map(Section::create).toList();
+        List<Section> sections = Optional.of(createCourse.sections().stream().map(Section::create).toList())
+            .orElse(List.of());
 
         return new Course(
             null,
@@ -51,20 +53,19 @@ public class Course {
         );
     }
 
-    public static Course rebuild(
-        Integer id, String title, String summary,
-        String detail, List<Section> sections, Integer subCategoryId,
-        LocalDateTime createdAt,  LocalDateTime updatedAt
-    ) throws IllegalArgumentException {
+    public static Course rebuild(RebuildCourse rebuildCourse) throws IllegalArgumentException {
+        List<Section> initialSections = Optional.of(rebuildCourse.sections().stream().map(Section::create).toList())
+            .orElse(List.of());
+
         return new Course(
-            id,
-            title,
-            summary,
-            detail,
-            sections,
-            subCategoryId,
-            createdAt,
-            updatedAt
+            rebuildCourse.id(),
+            rebuildCourse.title(),
+            rebuildCourse.summary(),
+            rebuildCourse.detail(),
+            initialSections,
+            rebuildCourse.subCategoryId(),
+            rebuildCourse.createdAt(),
+            rebuildCourse.updatedAt()
         );
     }
 
