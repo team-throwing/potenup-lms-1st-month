@@ -1,5 +1,6 @@
 package com.lms.domain.course;
 
+import com.lms.domain.category.Category;
 import com.lms.domain.course.spec.CreateCourse;
 import lombok.Getter;
 
@@ -13,13 +14,15 @@ public class Course {
     private final String summary;
     private final String detail;
     private final List<Section> sections;
+    private final Integer subCategoryId;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     private Course(
         Integer id, String title, String summary,
         String detail, List<Section> sections,
-        LocalDateTime createdAt, LocalDateTime updatedAt
+        Integer subCategoryId, LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) throws IllegalArgumentException {
         validateTitle(title);
 
@@ -28,6 +31,7 @@ public class Course {
         this.summary = summary;
         this.detail = detail;
         this.sections = sections;
+        this.subCategoryId = subCategoryId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -41,6 +45,7 @@ public class Course {
             createCourse.summary(),
             createCourse.detail(),
             sections,
+            createCourse.subCategoryId(),
             LocalDateTime.now(),
             null
         );
@@ -48,7 +53,7 @@ public class Course {
 
     public static Course rebuild(
         Integer id, String title, String summary,
-        String detail, List<Section> sections,
+        String detail, List<Section> sections, Integer subCategoryId,
         LocalDateTime createdAt,  LocalDateTime updatedAt
     ) throws IllegalArgumentException {
         return new Course(
@@ -57,6 +62,7 @@ public class Course {
             summary,
             detail,
             sections,
+            subCategoryId,
             createdAt,
             updatedAt
         );
