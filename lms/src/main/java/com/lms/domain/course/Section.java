@@ -1,9 +1,11 @@
 package com.lms.domain.course;
 
-import com.lms.domain.course.spec.CreateSection;
+import com.lms.domain.course.spec.creation.CreateSection;
+import com.lms.domain.course.spec.rebuid.RebuildSection;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class Section {
@@ -24,21 +26,22 @@ public class Section {
         this.contents = contents;
     }
 
-    public static Section create(CreateSection createSection) throws IllegalArgumentException {
-        List<Content> contents = createSection.contents().stream().map(Content::create).toList();
+    static Section create(CreateSection createSection) throws IllegalArgumentException {
+        List<Content> initialContent = createSection.contents().stream().map(Content::create).toList();
 
         return new Section(
             null,
             createSection.name(),
             createSection.seq(),
-            contents
+            initialContent
         );
     }
 
-    public static Section rebuild(
-        Integer id, String name, Integer seq, List<Content> contents
-    ) throws IllegalArgumentException {
-        return new Section(id, name, seq, contents);
+    static Section rebuild(RebuildSection rebuildSection) throws IllegalArgumentException {
+        List<Content> initialContent =
+            Optional.of(rebuildSection.contents().stream().map(Content::rebuild).toList()).orElse(List.of());
+
+        return new Section(rebuildSection.id(), rebuildSection.name(), rebuildSection.seq(), initialContent);
     }
 
     private void validateName(String name) throws IllegalArgumentException {
