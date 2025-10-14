@@ -63,7 +63,7 @@ public class Course {
     }
 
     private void validateTitle(String title) throws IllegalArgumentException {
-        if (title != null && !title.isEmpty()) {
+        if (title == null || title.isEmpty()) {
             throw new IllegalArgumentException("강의의 제목이 없습니다. 값을 확인해주세요.");
         }
     }
