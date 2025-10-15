@@ -1,7 +1,7 @@
 package com.lms.domain.course;
 
 import com.lms.domain.course.spec.creation.CreateSection;
-import com.lms.domain.course.spec.rebuid.RebuildSection;
+import com.lms.domain.course.spec.rebuild.RebuildSection;
 import lombok.Getter;
 
 import java.util.List;

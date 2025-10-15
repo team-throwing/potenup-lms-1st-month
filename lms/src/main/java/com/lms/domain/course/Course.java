@@ -1,7 +1,7 @@
 package com.lms.domain.course;
 
 import com.lms.domain.course.spec.creation.CreateCourse;
-import com.lms.domain.course.spec.rebuid.RebuildCourse;
+import com.lms.domain.course.spec.rebuild.RebuildCourse;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
