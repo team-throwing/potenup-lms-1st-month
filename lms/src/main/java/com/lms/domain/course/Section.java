@@ -27,7 +27,9 @@ public class Section {
     }
 
     static Section create(CreateSection createSection) throws IllegalArgumentException {
-        List<Content> initialContent = createSection.contents().stream().map(Content::create).toList();
+        List<Content> initialContent = Optional.ofNullable(createSection.contents())
+            .orElse(List.of())
+            .stream().map(Content::create).toList();
 
         return new Section(
             null,
@@ -38,8 +40,9 @@ public class Section {
     }
 
     static Section rebuild(RebuildSection rebuildSection) throws IllegalArgumentException {
-        List<Content> initialContent =
-            Optional.of(rebuildSection.contents().stream().map(Content::rebuild).toList()).orElse(List.of());
+        List<Content> initialContent = Optional.ofNullable(rebuildSection.contents())
+            .orElse(List.of())
+            .stream().map(Content::rebuild).toList();
 
         return new Section(rebuildSection.id(), rebuildSection.name(), rebuildSection.seq(), initialContent);
     }
