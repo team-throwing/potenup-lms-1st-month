@@ -78,6 +78,6 @@ public class Course {
     private void validateTitle(String title) throws IllegalArgumentException {
         Optional.ofNullable(title).orElseThrow(() ->
             new IllegalArgumentException("강의의 제목이 없습니다. 값을 확인해주세요.")
-        );  
+        );
     }
 }
