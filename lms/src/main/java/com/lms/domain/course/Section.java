@@ -48,14 +48,14 @@ public class Section {
     }
 
     private void validateName(String name) throws IllegalArgumentException {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("섹션의 이름이 비었습니다.");
-        }
+        Optional.ofNullable(name).orElseThrow(() ->
+            new IllegalArgumentException("섹션의 이름이 비었습니다.")
+        );
     }
 
     private void validateSeq(Integer seq) throws IllegalArgumentException {
-        if (seq == null || seq < 1) {
-            throw new IllegalArgumentException("섹션의 순서 번호가 알맞지 않습니다. 값을 확인햊주세요.");
-        }
+        Optional.ofNullable(seq).orElseThrow(() ->
+            new IllegalArgumentException("섹션의 순서 번호가 알맞지 않습니다. 값을 확인해주세요.")
+        );
     }
 }
