@@ -1,13 +1,10 @@
 package com.lms.repository.exception;
 
-import lombok.NoArgsConstructor;
-
 /**
- * 데이터베이스 제약사항을 어긴 경우 발생합니다.
+ * 무결성 제약조건 위반
  */
-@NoArgsConstructor
-public class ConstraintViolationException extends RuntimeException {
-    public ConstraintViolationException(String message) {
-        super(message);
+public class ConstraintViolationException extends DatabaseException {
+    public ConstraintViolationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
