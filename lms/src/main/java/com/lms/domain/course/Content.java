@@ -1,7 +1,7 @@
 package com.lms.domain.course;
 
 import com.lms.domain.course.spec.creation.CreateContent;
-import com.lms.domain.course.spec.rebuid.RebuildContent;
+import com.lms.domain.course.spec.rebuild.RebuildContent;
 import lombok.Getter;
 
 @Getter

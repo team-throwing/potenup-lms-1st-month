@@ -1,6 +1,4 @@
-package com.lms.domain.course.spec.rebuid;
-
-import com.lms.domain.course.spec.creation.CreateSection;
+package com.lms.domain.course.spec.rebuild;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,7 +9,7 @@ public record RebuildCourse(
     String summary,
     String detail,
     Integer subCategoryId,
-    List<CreateSection> sections,
+    List<RebuildSection> sections,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {

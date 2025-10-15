@@ -1,4 +1,4 @@
-package com.lms.domain.course.spec.rebuid;
+package com.lms.domain.course.spec.rebuild;
 
 public record RebuildContent(
     Long id,
