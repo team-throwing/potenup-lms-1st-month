@@ -1,4 +1,4 @@
-package com.lms.repository.error;
+package com.lms.repository.exception.error;
 
 /**
  * 권한 불충분

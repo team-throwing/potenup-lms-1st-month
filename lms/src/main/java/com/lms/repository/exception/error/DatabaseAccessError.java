@@ -1,4 +1,4 @@
-package com.lms.repository.error;
+package com.lms.repository.exception.error;
 
 /**
  * 데이터베이스 연결 및 자원 접근 관련 오류

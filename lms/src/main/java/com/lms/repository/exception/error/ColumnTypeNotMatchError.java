@@ -1,4 +1,4 @@
-package com.lms.repository.error;
+package com.lms.repository.exception.error;
 
 /**
  * 컬럼 타입에 맞지 않는 값을 할당 시도

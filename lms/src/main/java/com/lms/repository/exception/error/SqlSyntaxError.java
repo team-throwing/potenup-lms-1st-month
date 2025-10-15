@@ -1,4 +1,4 @@
-package com.lms.repository.error;
+package com.lms.repository.exception.error;
 
 /**
  * SQL 문법 오류
