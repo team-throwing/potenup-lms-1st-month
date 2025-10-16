@@ -35,4 +35,12 @@ public class Content {
             rebuildContent.body()
         );
     }
+
+    void nextSeq() {
+        this.seq++;
+    }
+
+    void specifiedSeq(Integer specifiedSeq) {
+        this.seq =  specifiedSeq;
+    }
 }
