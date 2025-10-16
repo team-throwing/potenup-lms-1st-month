@@ -5,8 +5,10 @@ import com.lms.domain.course.spec.rebuild.RebuildSection;
 import com.lms.util.Validation;
 import lombok.Getter;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.lms.domain.course.constvalue.ConstValue.NEXT_SEQ;
 
@@ -51,12 +53,12 @@ public class Section {
     }
 
     void addContent(Content newContent) {
-        balanceContent(newContent);
+        balanceSeqBeforeContentAdded(newContent);
 
         contents.add(newContent);
     }
 
-    private void balanceContent(Content newContent) {
+    private void balanceSeqBeforeContentAdded(Content newContent) {
         if (isLastSequence(newContent.getSeq())) {
             newContent.specifiedSeq(getLastSeq());
         }
@@ -64,6 +66,18 @@ public class Section {
         this.contents.stream()
             .filter(section -> section.getSeq().equals(newContent.getSeq()))
             .findFirst().ifPresent(Content::nextSeq);
+    }
+
+    void deleteContent(Long contentId) {
+        contents.removeIf(content -> content.getId().equals(contentId));
+        balanceSeqAfterSectionDeleted();
+    }
+
+    private void balanceSeqAfterSectionDeleted() {
+        AtomicInteger index = new AtomicInteger();
+
+        contents.stream().sorted(Comparator.comparing(Content::getSeq))
+            .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
     }
 
     private boolean isLastSequence(Integer seq) {
