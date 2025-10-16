@@ -3,9 +3,9 @@ import com.lms.dto.CategoryRequestDto; // dto 있다는 가정
 import com.lms.domain.category.Category;
 import com.lms.repository.category.CategoryRepository;
 
+
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 public class CategoryService {
 
@@ -20,23 +20,14 @@ public class CategoryService {
 
     private Category toEntity(CategoryRequestDto dto) {
         if (dto.getId() == null) {
-            // 새 엔티티 생성 (create()는 private이므로 직접 new)
-            return new Category(
-                    null,               // ID는 DB에서 자동 생성
-                    dto.getName(),
-                    dto.getLevel(),
-                    dto.getParentId()
-            );
+            // 새 카테고리 생성 규칙 적용
+            return Category.create(dto.getName(), dto.getLevel(), dto.getParentId());
         } else {
-            // 기존 엔티티 rebuild 느낌
-            return new Category(
-                    dto.getId(),
-                    dto.getName(),
-                    dto.getLevel(),
-                    dto.getParentId()
-            );
+            // 기존 카테고리 rebuild 규칙 적용
+            return Category.rebuild(dto.getId(), dto.getName(), dto.getLevel(), dto.getParentId());
         }
     }
+
 
 
     //  생성
@@ -51,7 +42,7 @@ public class CategoryService {
                 throw new IllegalArgumentException("이름은 필수입니다.");
             }
 
-            if (dto.getId() != null && categoryRepository.findById(conn, dto.getId()).isPresent()) {
+            if (dto.getId() != null && categoryRepository.findById(dto.getId()).isPresent()) {
                 throw new IllegalStateException("이미 존재하는 카테고리입니다."); //dto로 받은 id가 null이 아니고 현재 존재할때
             }
 
@@ -61,16 +52,13 @@ public class CategoryService {
         } catch (Exception e) {
             if (conn != null) try {
                 conn.rollback();
-            } catch (Exception ex) {
-            }
+            } catch (Exception ex) {}
             throw new RuntimeException(e);  // 예외 발생 시 트랜잭션 롤백 후, RuntimeException으로 재던짐
         } finally {
             ConnectionHolder.clear();
             if (conn != null) try {
                 conn.close();  // 커넥션 홀더 초기화 및 DB 연결 종료
-            } catch (Exception ex) {
-            }
-        }
+            } catch (Exception ex) {}}
     }
     //  수정
 
@@ -84,12 +72,15 @@ public class CategoryService {
             if (dto.getId() == null) throw new IllegalArgumentException("ID는 필수입니다.");
 
             // ID로 카테고리를 조회하고, 존재하지 않으면 예외 발생
-            Category category = categoryRepository.findById(conn, dto.getId())
+            Category category = categoryRepository.findById(dto.getId())
                     .orElseThrow(() -> new IllegalStateException("존재하지 않는 카테고리"));
 
             // 받은 이름이 NULL이 아니고 빈 문자열이 아닐때
             if (dto.getName() != null && !dto.getName().isEmpty()) {
-                category.rebuild(dto.getName());
+                category.rebuild(dto.getId(),
+                        dto.getName(),
+                        dto.getLevel(),
+                        dto.getParentId());
             }
 
             categoryRepository.update(category);
