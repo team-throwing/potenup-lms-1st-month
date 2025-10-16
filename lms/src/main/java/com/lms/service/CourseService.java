@@ -5,7 +5,7 @@ import com.lms.domain.course.Course;
 import com.lms.domain.course.Notice;
 import com.lms.domain.course.Section;
 
-public class CourseService {
+/*public class CourseService {
 
     private final
     private final
@@ -47,3 +47,4 @@ public class CourseService {
     }
     private void updateNotice(Notice notice) {}
 }
+*/
