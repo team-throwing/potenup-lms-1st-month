@@ -8,22 +8,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Getter
 public class Course {
+    @Getter
     private Integer id;
+    @Getter
     private final String title;
+    @Getter
     private final String summary;
+    @Getter
     private final String detail;
     private final List<Section> sections;
+    @Getter
     private final Integer subCategoryId;
+    @Getter
     private final LocalDateTime createdAt;
+    @Getter
+    private final Long userId;
+    @Getter
     private LocalDateTime updatedAt;
 
     private Course(
         Integer id, String title, String summary,
         String detail, List<Section> sections,
-        Integer subCategoryId, LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Integer subCategoryId, Long userId,
+        LocalDateTime createdAt, LocalDateTime updatedAt
     ) throws IllegalArgumentException {
         validateTitle(title);
 
@@ -33,6 +41,7 @@ public class Course {
         this.detail = detail;
         this.sections = sections;
         this.subCategoryId = subCategoryId;
+        this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -49,6 +58,7 @@ public class Course {
             createCourse.detail(),
             sections,
             createCourse.subCategoryId(),
+            createCourse.userId(),
             LocalDateTime.now(),
             null
         );
@@ -66,6 +76,7 @@ public class Course {
             rebuildCourse.detail(),
             initialSections,
             rebuildCourse.subCategoryId(),
+            rebuildCourse.userId(),
             rebuildCourse.createdAt(),
             rebuildCourse.updatedAt()
         );

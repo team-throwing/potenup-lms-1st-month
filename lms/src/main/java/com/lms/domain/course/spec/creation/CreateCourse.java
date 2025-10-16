@@ -7,5 +7,6 @@ public record CreateCourse(
     String summary,
     String detail,
     Integer subCategoryId,
+    Long userId,
     List<CreateSection> sections
 ) {}
