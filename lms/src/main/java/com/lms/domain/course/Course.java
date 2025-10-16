@@ -7,8 +7,10 @@ import com.lms.domain.course.spec.rebuild.RebuildCourse;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.lms.domain.course.constvalue.ConstValue.NEXT_SEQ;
 
@@ -100,20 +102,34 @@ public class Course {
          * 기존의 section의 순번을 1만큼 뒤로 밀고
          * 기존의 순번 자리에 새로운 섹션을 넣는다.
          */
-        balanceSeq(newSection);
+        balanceSeqBeforeSectionAdded(newSection);
+
         sections.add(Section.create(section));
+        sections.sort(Comparator.comparing(Section::getSeq));
 
         touched();
     }
 
-    private void balanceSeq(Section newSection) {
+    public void deleteSection(Integer deletedSectionId) {
+        sections.removeIf(section -> section.getSeq().equals(deletedSectionId));
+        balanceSeqAfterSectionDeleted();
+    }
+
+    private void balanceSeqBeforeSectionAdded(Section newSection) {
         if (isLastSequence(newSection.getSeq())) {
             newSection.specifiedSeq(getLastSeq());
         }
 
         this.sections.stream()
-            .filter(section -> section.getSeq().equals(newSection.getSeq()))
-            .findFirst().ifPresent(Section::nextSeq);
+            .filter(section -> section.getSeq() >= newSection.getSeq())
+            .forEach(Section::nextSeq);
+    }
+
+    private void balanceSeqAfterSectionDeleted() {
+        AtomicInteger index = new AtomicInteger();
+
+        sections.stream().sorted(Comparator.comparing(Section::getSeq))
+            .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
     }
 
     public void addContent(CreateContent content, Integer sectionId) {
@@ -121,11 +137,17 @@ public class Course {
 
         Content newContent = Content.create(content);
 
-        sections.stream().filter(section -> section.getId().equals(sectionId))
-            .findFirst()
+        sections.stream()
+            .filter(section -> section.getId().equals(sectionId)).findFirst()
             .ifPresent(section -> section.addContent(newContent));
 
         touched();
+    }
+
+    public void deleteContent(Long contentId, Integer sectionId) {
+        sections.stream()
+            .filter(section -> section.getId().equals(sectionId)).findFirst()
+            .ifPresent(section -> section.deleteContent(contentId));
     }
 
     private boolean isLastSequence(Integer seq) {
