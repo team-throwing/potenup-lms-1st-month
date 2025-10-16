@@ -1,4 +1,4 @@
-package com.lms.domain.view;
+package com.lms.view;
 
 import java.util.Scanner;
 
