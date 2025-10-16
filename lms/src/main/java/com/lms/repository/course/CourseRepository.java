@@ -61,22 +61,6 @@ public interface CourseRepository {
     List<CourseInfo> searchCourseInfo(CourseInfoSearchFilter filter);
 
     /**
-     * course 가 존재하지 않는 경우 create 하고,
-     * 존재하는 경우 기존 강좌를 삭제 후 덮어씁니다.
-     * @param course 강좌
-     * @throws IllegalArgumentException course 가 null
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
-     */
-    void replace(Course course);
-
-    /**
-     * 변경된 부분만 수정합니다.
      * @param course 강좌
      * @throws IllegalArgumentException course 가 null
      * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
