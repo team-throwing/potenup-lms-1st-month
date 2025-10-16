@@ -11,9 +11,7 @@ public class ConnectionHolder {
     }
 
     public static void set(Connection connection) {
-        connectionThreadLocal.set(connection);
-    }
-
+        connectionThreadLocal.set(connection);}
     public static void clear() {
         connectionThreadLocal.remove();
     }

@@ -9,11 +9,11 @@ public class Category {
     private CategoryLevel level;
     private Integer parentId;
 
-    private Category(
-        Integer id,
-        String name,
-        CategoryLevel level,
-        Integer parentId
+    public Category(
+            Integer id,
+            String name,
+            CategoryLevel level,
+            Integer parentId
     ) {
         this.id = id;
         this.name = name;
