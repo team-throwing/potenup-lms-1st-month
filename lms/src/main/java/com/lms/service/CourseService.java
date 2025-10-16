@@ -1,50 +1,84 @@
 package com.lms.service;
 
-import com.lms.domain.course.Content;
 import com.lms.domain.course.Course;
-import com.lms.domain.course.Notice;
-import com.lms.domain.course.Section;
+import com.lms.repository.course.CourseRepository;
+import com.lms.repository.course.dto.CourseInfo;
 
-/*public class CourseService {
+import java.sql.Connection;
+import java.sql.SQLException;
 
-    private final
-    private final
-    private final
-    private final
-    private final
+public class CourseService {
 
-    public CourseService()
-    {
-        this.
-    }
-    public void createCourse(Course course) {
+    private final CourseRepository courseRepository;
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
     }
 
-    public void deleteCourse(Course course) {
+
+    public void createCourse (CourseInfo dto) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DataSource.getConnection();
+            ConnectionHolder.set(conn);
+            conn.setAutoCommit(false);
+
+            if (dto.title() == null || dto.title().isEmpty()) {
+                throw new IllegalArgumentException("제목 누락");
+            }
+
+
+            courseRepository.create(toEntity(dto));
+
+            conn.commit();
+        } catch (Exception e) {
+                throw new RuntimeException(e);
+        }
+
     }
 
-    public void updateCourse(Course course) {
+    public void updateCourse (CourseInfo dto) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DataSource.getConnection();
+            ConnectionHolder.set(conn);
+            conn.setAutoCommit(false);
+            if (dto.title() == null || dto.title().isEmpty()) {
+                throw new IllegalArgumentException("수정할 뭐시기 없음?");
+            }
 
+            courseRepository.update(toEntity(dto));
+            conn.commit();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void createSection(Section section) {
-    }
-    private void deleteSection(Section section) {
-    }
-    private void updateSection(Section section) {
+    public void deleteCourse (CourseInfo dto) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DataSource.getConnection();
+            ConnectionHolder.set(conn);
+            conn.setAutoCommit(false);
+            if (dto.title() != null || !dto.title().isEmpty()) {
+                throw new IllegalArgumentException("삭제할게없음");
+            }
+
+            courseRepository.delete(toEntity(dto));
+        }
     }
 
-    private void createcontent(Content content) {
-    }
-    private void deletecontent(Content content) {
-    }
-    private void updatecontent(Content content) {
-    }
 
-    private void createNotice(Notice notice) {
-    }
-    private void deleteNotice(Notice notice) {
-    }
-    private void updateNotice(Notice notice) {}
+
+
+        private Course toEntity(CourseInfo dto) {
+            return new Course(
+                    dto.id(),
+                    dto.title(),
+                    dto.summary(),
+                    dto.detail(),
+                    dto.subCategoryId(),
+                    dto.createdAt(),
+                    dto.updatedAt(),
+                    dto.userId();}
+
 }
-*/
