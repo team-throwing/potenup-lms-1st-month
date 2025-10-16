@@ -76,7 +76,7 @@ public interface CategoryRepository {
      *          <li>명시된 parentId 에 해당하는 category 가 존재하지 않음</li>
      *      </ul>
      */
-     void update(Category category);
+    void update(Category category);
 
     /**
      * @param id 삭제할 id
@@ -84,5 +84,5 @@ public interface CategoryRepository {
      * @throws RecordNotFoundException id 에 해당하는 카테고리를 찾을 수 없음.
      * @throws OrphanNotAllowedException DBMS 에 DELETE 연산에 대한 고아 카테고리가 허용되지 않음
      */
-     void delete(long id);
+    void delete(long id);
 }
