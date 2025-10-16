@@ -9,6 +9,7 @@ public record RebuildCourse(
     String summary,
     String detail,
     Integer subCategoryId,
+    Long userId,
     List<RebuildSection> sections,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
