@@ -21,13 +21,13 @@ public class Category {
         this.parentId = parentId;
     }
 
-    public Category create(
+    public static Category create(
         String name, CategoryLevel level, Integer parentId
     ) {
         return new Category(null, name, level, parentId);
     }
 
-    public Category rebuild(
+    public static Category rebuild(
         Integer id, String name, CategoryLevel level, Integer parentId
     ) {
         return new Category(id, name, level, parentId);
