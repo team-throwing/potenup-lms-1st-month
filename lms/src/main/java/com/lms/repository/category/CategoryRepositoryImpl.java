@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class CategoryRepositoryImpl implements CategoryRepository {
 
@@ -52,8 +53,8 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
-    public Category findById(long id) {
-        return null;
+    public Optional<Category> findById(long id) {
+        return Optional.empty();
     }
 
     @Override
@@ -62,8 +63,8 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
-    public Category findParentByChildId(long id) {
-        return null;
+    public Optional<Category> findParentByChildId(long id) {
+        return Optional.empty();
     }
 
     @Override

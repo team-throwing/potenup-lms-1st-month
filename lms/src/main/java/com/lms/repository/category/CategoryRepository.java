@@ -5,6 +5,7 @@ import com.lms.domain.category.CategoryLevel;
 import com.lms.repository.exception.DatabaseException;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CategoryRepository {
 
@@ -27,7 +28,7 @@ public interface CategoryRepository {
 
     /**
      * @param id 카테고리 id
-     * @return 카테고리(not null)
+     * @return 카테고리 또는 Optional.empty()
      * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
      * <ul>
@@ -37,7 +38,7 @@ public interface CategoryRepository {
      *     <li>등등...</li>
      * </ul>
      */
-    Category findById(long id);
+    Optional<Category> findById(long id);
 
     /**
      * @param categoryLevel 카테고리 레벨
@@ -55,7 +56,7 @@ public interface CategoryRepository {
     
     /**
      * @param id 하위 카테고리 id
-     * @return 상위 카테고리 또는 null
+     * @return 상위 카테고리 또는 Optional.empty()
      * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
      * <ul>
@@ -65,7 +66,7 @@ public interface CategoryRepository {
      *     <li>등등...</li>
      * </ul>
      */
-    Category findParentByChildId(long id);
+    Optional<Category> findParentByChildId(long id);
 
     /**
      * @param id 상위 카테고리 id
