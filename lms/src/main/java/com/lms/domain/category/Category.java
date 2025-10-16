@@ -10,10 +10,10 @@ public class Category {
     private Integer parentId;
 
     private Category(
-            Integer id,
-            String name,
-            CategoryLevel level,
-            Integer parentId
+        Integer id,
+        String name,
+        CategoryLevel level,
+        Integer parentId
     ) {
         this.id = id;
         this.name = name;
@@ -21,13 +21,13 @@ public class Category {
         this.parentId = parentId;
     }
 
-    Category create(
+    public Category create(
         String name, CategoryLevel level, Integer parentId
     ) {
         return new Category(null, name, level, parentId);
     }
 
-    Category rebuild(
+    public Category rebuild(
         Integer id, String name, CategoryLevel level, Integer parentId
     ) {
         return new Category(id, name, level, parentId);
