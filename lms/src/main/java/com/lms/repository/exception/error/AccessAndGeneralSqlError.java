@@ -1,7 +1,7 @@
 package com.lms.repository.exception.error;
 
 /**
- * 데이터베이스 접근 계층에서 SQL 잘못 작성
+ * 권한 문제 또는 일반적인 SQL 오류
  */
 public class AccessAndGeneralSqlError extends DatabaseError {
     public AccessAndGeneralSqlError(String message, Throwable cause) {
