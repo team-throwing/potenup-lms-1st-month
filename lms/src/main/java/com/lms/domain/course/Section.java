@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.lms.domain.course.constvalue.ConstValue.NEXT_SEQ;
 
+import static com.lms.domain.course.constvalue.ConstValue.NEXT_SEQ;
+
 @Getter
 public class Section {
     private Integer id;
