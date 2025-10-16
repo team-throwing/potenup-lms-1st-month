@@ -2,10 +2,13 @@ package com.lms.domain.course;
 
 import com.lms.domain.course.spec.creation.CreateSection;
 import com.lms.domain.course.spec.rebuild.RebuildSection;
+import com.lms.util.Validation;
 import lombok.Getter;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.lms.domain.course.constvalue.ConstValue.NEXT_SEQ;
 
 @Getter
 public class Section {
@@ -47,6 +50,38 @@ public class Section {
         return new Section(rebuildSection.id(), rebuildSection.name(), rebuildSection.seq(), initialContent);
     }
 
+    void addContent(Content newContent) {
+        balanceContent(newContent);
+
+        contents.add(newContent);
+    }
+
+    private void balanceContent(Content newContent) {
+        if (isLastSequence(newContent.getSeq())) {
+            newContent.specifiedSeq(getLastSeq());
+        }
+
+        this.contents.stream()
+            .filter(section -> section.getSeq().equals(newContent.getSeq()))
+            .findFirst().ifPresent(Content::nextSeq);
+    }
+
+    private boolean isLastSequence(Integer seq) {
+        return contents.size() < seq;
+    }
+
+    private Integer getLastSeq() {
+        return contents.size() + NEXT_SEQ;
+    }
+    
+    void nextSeq() {
+        this.seq++;
+    }
+
+    void specifiedSeq(Integer specifiedSeq) {
+        this.seq =  specifiedSeq;
+    }
+
     private void validateName(String name) throws IllegalArgumentException {
         Optional.ofNullable(name).orElseThrow(() ->
             new IllegalArgumentException("섹션의 이름이 비었습니다.")
@@ -54,6 +89,8 @@ public class Section {
     }
 
     private void validateSeq(Integer seq) throws IllegalArgumentException {
+        Validation.requirePositive(seq, "섹션 순서는 음수가 될 수 없습니다.");
+
         Optional.ofNullable(seq).orElseThrow(() ->
             new IllegalArgumentException("섹션의 순서 번호가 알맞지 않습니다. 값을 확인해주세요.")
         );
