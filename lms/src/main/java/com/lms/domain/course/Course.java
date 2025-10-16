@@ -113,6 +113,7 @@ public class Course {
     public void deleteSection(Integer deletedSectionId) {
         sections.removeIf(section -> section.getSeq().equals(deletedSectionId));
         balanceSeqAfterSectionDeleted();
+        touched();
     }
 
     private void balanceSeqBeforeSectionAdded(Section newSection) {
@@ -148,6 +149,8 @@ public class Course {
         sections.stream()
             .filter(section -> section.getId().equals(sectionId)).findFirst()
             .ifPresent(section -> section.deleteContent(contentId));
+
+        touched();
     }
 
     private boolean isLastSequence(Integer seq) {
