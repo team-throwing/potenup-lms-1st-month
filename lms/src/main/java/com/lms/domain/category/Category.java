@@ -9,7 +9,7 @@ public class Category {
     private CategoryLevel level;
     private Integer parentId;
 
-    public Category(
+    private Category(
             Integer id,
             String name,
             CategoryLevel level,
