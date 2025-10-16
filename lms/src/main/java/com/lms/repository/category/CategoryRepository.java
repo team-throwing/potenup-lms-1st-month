@@ -17,13 +17,7 @@ public interface CategoryRepository {
      *          <li>category 가 null</li>
      *          <li>category.id 가 not null</li>
      *      </ul>
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     Category create(Category category);
 
@@ -31,13 +25,7 @@ public interface CategoryRepository {
      * @param id 카테고리 id
      * @return 카테고리 또는 Optional.empty()
      * @throws IllegalArgumentException id 가 음수
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     Optional<Category> findById(long id);
 
@@ -45,13 +33,7 @@ public interface CategoryRepository {
      * @param categoryLevel 카테고리 레벨
      * @return 해당 카테고리 레벨의 모든 카테고리 List. 이 List 는 비어있을 수 있음
      * @throws IllegalArgumentException categoryLevel 이 null
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     List<Category> findAllByCategoryLevel(CategoryLevel categoryLevel);
     
@@ -59,38 +41,20 @@ public interface CategoryRepository {
      * @param id 하위 카테고리 id
      * @return 상위 카테고리 또는 Optional.empty()
      * @throws IllegalArgumentException id 가 음수
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     Optional<Category> findParentByChildId(long id);
 
     /**
      * @param id 상위 카테고리 id
      * @return 소속 하위 카테고리 List. 이 List 는 비어있을 수 있음
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     List<Category> findChildrenByParentId(long id);
 
     /**
      * @return 모든 카테고리 List. 이 List 는 비어있을 수 있음.
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     List<Category> findAll();
     
@@ -101,26 +65,14 @@ public interface CategoryRepository {
      *          <li>category 가 null</li>
      *          <li>category.id 가 null</li>
      *      </ul>
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     void update(Category category);
 
     /**
      * @param id 삭제할 id
      * @throws IllegalArgumentException id 가 음수.
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외입니다. 예를 들어, <br/>
-     * <ul>
-     *     <li>무결성 제약 조건 위반 (ex. 중복 키 삽입 시도, Not Null 위반, ...)</li>
-     *     <li>잘못된 데이터 형식 (ex. 너무 긴 문자열, 오버 플로우, 언더 플로우, 잘못된 날짜 형식, ...)</li>
-     *     <li>트랜잭션 실패 (ex. 데드락 감지, 락 대기시간 초과, ...)</li>
-     *     <li>등등...</li>
-     * </ul>
+     * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     void delete(long id);
 }
