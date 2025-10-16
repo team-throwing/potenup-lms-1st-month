@@ -12,6 +12,7 @@ public interface CourseRepository {
 
     /**
      * @param course 강좌 id
+     * @return 강좌
      * @throws IllegalArgumentException <br/>
      *      <ul>
      *          <li>course 가 null</li>
@@ -25,7 +26,7 @@ public interface CourseRepository {
      *     <li>등등...</li>
      * </ul>
      */
-    void create(Course course);
+    Course create(Course course);
 
     /**
      * @param id 강좌 id

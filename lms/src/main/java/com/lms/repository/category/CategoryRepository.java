@@ -11,6 +11,7 @@ public interface CategoryRepository {
 
     /**
      * @param category 강좌 카테고리
+     * @return 카테고리
      * @throws IllegalArgumentException <br/>
      *      <ul>
      *          <li>category 가 null</li>
@@ -24,7 +25,7 @@ public interface CategoryRepository {
      *     <li>등등...</li>
      * </ul>
      */
-    void create(Category category);
+    Category create(Category category);
 
     /**
      * @param id 카테고리 id
