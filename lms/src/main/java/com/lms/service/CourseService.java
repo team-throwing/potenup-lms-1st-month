@@ -1,10 +1,8 @@
-// ============================================
-// Course Service
-// ============================================
 
 package com.lms.service;
 
 import com.lms.domain.course.Course;
+import com.lms.domain.course.Section;
 import com.lms.domain.course.spec.creation.CreateCourse;
 import com.lms.repository.category.CategoryRepository;
 import com.lms.repository.course.CourseRepository;
@@ -22,6 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseService {
 
+
+    private final ContentRepository contentRepository;
+    private final SectionRepository sectionRepository;
     private final CourseRepository courseRepository;
     private final CategoryRepository categoryRepository;
     private final DataSource dataSource;
@@ -256,6 +257,19 @@ public class CourseService {
         }
     }
 
+    public void createsection(CourseInfo courseInfo) {
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+            ConnectionHolder.set(conn);
+
+            SectionRepository.create
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private void validateCreateCourse(CreateCourse createCourse) {
         if (createCourse == null) {
             throw new IllegalArgumentException("강좌 생성 정보가 없습니다.");

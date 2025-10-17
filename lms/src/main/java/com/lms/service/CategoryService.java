@@ -4,8 +4,10 @@ import com.lms.domain.category.Category;
 import com.lms.repository.category.CategoryRepository;
 
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 public class CategoryService {
 
@@ -154,4 +156,26 @@ public class CategoryService {
             }
         }
     }
+
+
+    // 전체 카테고리 목록 조회
+    public List<Category> findAllCategories() {
+        Connection conn = null;
+        try {
+            conn = DataSource.getConnection();
+            ConnectionHolder.set(conn);
+
+            List<Category> categories = categoryRepository.findAll(); // findAll()은 repository에서 구현 필요
+
+            return categories;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            ConnectionHolder.clear();
+            if (conn != null) try {
+                conn.close();
+            } catch (Exception ex) {}
+        }
+    }
+
 }
