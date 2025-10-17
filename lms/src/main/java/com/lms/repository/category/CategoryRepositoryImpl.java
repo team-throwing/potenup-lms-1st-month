@@ -62,9 +62,9 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 Category created = null;
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        long id = rs.getLong(1);
+                        int id = rs.getInt(1);
                         created = Category.rebuild(
-                                (int) id,
+                                id,
                                 category.getName(),
                                 category.getLevel(),
                                 category.getParentId()
