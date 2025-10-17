@@ -34,7 +34,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
         String sql = """
                 INSERT INTO category
                 (name, level, parent_id)
-                VALUES ();
+                VALUES (?, ?, ?);
                 """;
 
         // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
