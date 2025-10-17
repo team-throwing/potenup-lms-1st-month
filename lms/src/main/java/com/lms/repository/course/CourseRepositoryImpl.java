@@ -1,7 +1,6 @@
 package com.lms.repository.course;
 
 import com.lms.domain.course.Course;
-import com.lms.domain.course.spec.rebuild.RebuildContent;
 import com.lms.domain.course.spec.rebuild.RebuildCourse;
 import com.lms.domain.course.spec.rebuild.RebuildSection;
 import com.lms.repository.course.dto.CourseInfo;
@@ -11,7 +10,6 @@ import com.lms.repository.exception.converter.DbUtils;
 import com.lms.service.ConnectionHolder;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class CourseRepositoryImpl implements CourseRepository {
@@ -76,7 +74,6 @@ public class CourseRepositoryImpl implements CourseRepository {
                 int id = -1;
                 RebuildCourse rebuildCourse = null;
                 List<RebuildSection> rebuildSections = new ArrayList<>();
-                Map<Integer, List<RebuildContent>> rebuildContentsBySectionId = new HashMap<>();
 
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
@@ -87,17 +84,17 @@ public class CourseRepositoryImpl implements CourseRepository {
                         // RebuildCourse
                         rebuildCourse = new RebuildCourse(
                                 id,
-                                rs.getString("title"),
-                                rs.getString("summary"),
-                                rs.getString("detail"),
-                                rs.getInt("category_id"),
-                                rs.getLong("user_id"),
+                                course.getTitle(),
+                                course.getSummary(),
+                                course.getDetail(),
+                                course.getSubCategoryId(),
+                                course.getUserId(),
 
                                 // 이 시점에서 rebuildSections 리스트는 비어있음
                                 rebuildSections,
 
-                                LocalDateTime.now(),
-                                null
+                                course.getCreatedAt(),
+                                course.getUpdatedAt()
                         );
                     }
                 }
