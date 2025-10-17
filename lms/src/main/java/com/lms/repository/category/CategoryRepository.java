@@ -27,7 +27,7 @@ public interface CategoryRepository {
      * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
-    Optional<Category> findById(long id);
+    Optional<Category> findById(int id);
 
     /**
      * @param categoryLevel 카테고리 레벨
@@ -43,14 +43,14 @@ public interface CategoryRepository {
      * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
-    Optional<Category> findParentByChildId(long id);
+    Optional<Category> findParentByChildId(int id);
 
     /**
      * @param id 상위 카테고리 id
      * @return 소속 하위 카테고리 List. 이 List 는 비어있을 수 있음
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
-    List<Category> findChildrenByParentId(long id);
+    List<Category> findChildrenByParentId(int id);
 
     /**
      * @return 모든 카테고리 List. 이 List 는 비어있을 수 있음.
@@ -74,5 +74,5 @@ public interface CategoryRepository {
      * @throws IllegalArgumentException id 가 음수.
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
-    void delete(long id);
+    void delete(int id);
 }

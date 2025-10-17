@@ -28,7 +28,7 @@ public interface CourseRepository {
      * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
-    Optional<Course> findById(long id);
+    Optional<Course> findById(int id);
 
     /**
      * @param filter 강좌 검색 필터
@@ -55,5 +55,5 @@ public interface CourseRepository {
      * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
-    void delete(long id);
+    void delete(int id);
 }
