@@ -2,6 +2,7 @@ package com.lms.repository.category;
 
 import com.lms.domain.category.Category;
 import com.lms.domain.category.CategoryLevel;
+import com.lms.repository.exception.DatabaseException;
 import com.lms.repository.exception.ModificationTargetNotFoundException;
 import com.lms.repository.exception.converter.DbUtils;
 import com.lms.service.ConnectionHolder;
@@ -54,7 +55,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 // SQL 실행
                 int result = pstmt.executeUpdate();
                 if (result == 0) {
-                    throw new RuntimeException("알 수 없는 이유로 생성에 실패했습니다.");
+                    throw new DatabaseException("알 수 없는 이유로 생성에 실패했습니다.", null);
                 }
 
                 // 결과를 적절하게 처리
