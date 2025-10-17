@@ -10,15 +10,10 @@ public class MainMenu {
         while (true) {
             System.out.println("\n=== 메인 메뉴 ===");
 
-            // 이름, 부모 카테고리, 카테고리 레벨
-            System.out.println("1. 카테고리 메뉴");
-            // 카테고리 level 0 목록 출력 + 카테고리 메뉴 진입
+            // 강좌 및 카테고리 조회 메뉴
+            System.out.println("1. 강좌/카테고리 조회 메뉴");
 
-            // Course: 이름, 소속 카테고리, 개요, detail, 작성자id, 생성 일시, 수정 일시
-            // Section: 섹션 설정 (이름, 섹션 순서, 소속 강의id)
-            // Content: 이름, 콘텐츠 순서, 소속 섹션id, 콘텐츠 개요(본문)
-            System.out.println("2. 강좌 메뉴");
-
+            System.out.println("2. 관리자 메뉴");
             System.out.println("3. 프로그램 종료");
             System.out.print("메뉴 선택: ");
 
@@ -27,11 +22,10 @@ public class MainMenu {
 
             switch (userInput) {
                 case 1:
-                    new CategoryMenu().showCategoryMenu0();
-
+                    new SearchMenu().showSearchMenu();
                     break;
                 case 2:
-                    new CourseMenu().showCourseMenu();
+                    new ManagementMenu().showManagementMenu();
                     break;
                 case 3:
                     System.exit(0);
