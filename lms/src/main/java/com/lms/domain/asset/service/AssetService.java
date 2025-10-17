@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,7 +59,7 @@ public class AssetService implements AutoCloseable {
     /**
      * 워커 스레드 개수 (기본값: 5).
      */
-    private final int threadSize=5;
+    private static final int threadSize=5;
 
 
 
@@ -77,12 +78,10 @@ public class AssetService implements AutoCloseable {
      * @return 생성된 Asset List
      * @see AssetServiceCreate
      */
-    public List<Asset> submitUploadFileList(List<AssetServiceCreate> assetcreateList) {
-        
-        List<CreateAsset> createassetList = Optional.of(
-            assetcreateList.stream()
-                .map(AssetServiceCreate::toCreateAsset).toList()
-        ).orElse(List.of());
+    public List<Asset> submitUploadFileList(List<AssetServiceCreate> assetcreateList) throws IllegalArgumentException {
+        List<CreateAsset> createassetList = Optional.ofNullable(
+            assetcreateList).orElse(List.of())
+            .stream().map(AssetServiceCreate::toCreateAsset).toList();
         List<Asset> assetList = createassetList.stream()
             .map(Asset::create)
             .toList();
@@ -103,14 +102,17 @@ public class AssetService implements AutoCloseable {
      * @param contentId를 조회할 Content 의 Id
      * @return Content에 연결된 모든 Asset 리스트
      */
-    public List<Asset> getAssetStatus(Integer contentId) {
+    public List<Asset> getAssetStatus(Integer contentId) throws IllegalArgumentException {
+        Optional.ofNullable(contentId).orElseThrow(() -> 
+            new IllegalArgumentException("조회하고자 하는 컨텐츠 값이 비어있습니다.")
+        );
+
         // TODO: Repository에서 조회, List AssetServiceRebuild DTO find by contendId
+        // Repository의 return 은 notnull
         List<AssetServiceRebuild> assetDTOList = null;
 
-        List<RebuildAsset> rebuildList = Optional.of(
-            assetDTOList.stream()
-            .map(AssetServiceRebuild::toRebuildAsset).toList())
-            .orElse(List.of());
+        List<RebuildAsset> rebuildList = assetDTOList.stream()
+            .map(AssetServiceRebuild::toRebuildAsset).toList();
 
         List<Asset> assetList = rebuildList.stream()
             .map(Asset::rebuild).toList();
@@ -130,18 +132,18 @@ public class AssetService implements AutoCloseable {
         // assetRepository.findByContentID(contentId)
         List<AssetServiceRebuild> assetDTOList = null;
 
-        List<RebuildAsset> rebuildList = Optional.of(
-            assetDTOList.stream()
-            .filter(dto -> dto.status() == UploadStatus.FAILED)
-            .map(AssetServiceRebuild::toRebuildAsset).toList())
-            .orElse(List.of());
+        List<RebuildAsset> rebuildList = Optional.ofNullable(
+            assetDTOList).orElse(List.of())
+            .stream().filter(dto -> dto.status() == UploadStatus.FAILED)
+            .map(AssetServiceRebuild::toRebuildAsset).toList();
 
         List<Asset> assetList = rebuildList.stream()
             .map(Asset::rebuild).toList();
 
 
         for (Asset asset:assetList) {
-            if (asset.retryAble()) {
+            if (asset.canRetry()) {
+                asset.incrementRetryCount();
                 asset.statusUpdateRetry();
                 assetAppendQueue(asset);
             } else {
@@ -149,6 +151,8 @@ public class AssetService implements AutoCloseable {
             }
         }
     }
+
+
 
     /**
      * Asset을 큐에 추가
@@ -173,9 +177,8 @@ public class AssetService implements AutoCloseable {
      * <p>각 워커는 큐를 모니터링하며 Asset을 꺼내 업로드 처리 수행</p>
      */
     private void createUploadWorkers() {
-        for (int i=0; i<threadSize; i++) {
-            this.workerExecutor.submit(new Worker());
-        }
+        IntStream.range(0,threadSize)
+            .forEach(eachThread -> this.workerExecutor.submit(new Worker()));
     }
     
     /**
@@ -225,7 +228,8 @@ public class AssetService implements AutoCloseable {
             } catch (Exception e) { 
                 asset.statusUpdateFailed();
                 System.err.println("업로드 실패");
-                if (asset.retryAble()) {
+                if (asset.canRetry()) {
+                    asset.incrementRetryCount();
                     asset.statusUpdateRetry();
                     assetAppendQueue(asset);
                 } else {

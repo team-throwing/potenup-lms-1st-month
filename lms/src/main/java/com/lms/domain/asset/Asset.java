@@ -40,14 +40,16 @@ public class Asset {
     private final String originalFilename;
     private final String convertedFilename;
     private final Integer contentId;
-    private UploadStatus status; // 비동기 처리 상태 추적적
-    private Integer retryCount;
+    private UploadStatus status; // 비동기 처리 상태 추적
+    private int retryCount = 0;
+
+    private static final int MAX_RETRY_COUNT = 5;
 
     private Asset(
         Integer id, String mimeType, String path,
         String originalFilename, String convertedFilename, 
         Integer contentId, UploadStatus status
-    ) throws IllegalArgumentException {
+    ) {
         
         this.id = id;
         this.mimeType = mimeType;
@@ -56,7 +58,6 @@ public class Asset {
         this.convertedFilename = convertedFilename;
         this.contentId = contentId;
         this.status = status;
-        this.retryCount = 0;
     }
     
     /**
@@ -97,18 +98,23 @@ public class Asset {
         );
     }
 
-    // message Queue에 있을 때, 작업이 상황에 따라 해당 상태를 변경
-    // 조회로 상태 점검
     /**
      * Asset의 업로드 재시도 여부 조회
      * @return 가능하면 true, 불가능은 false
      */
-    public boolean retryAble() {
-        if (this.retryCount<3 && this.status == UploadStatus.FAILED) {
-            this.retryCount = this.retryCount + 1;
-            return true;
+    public boolean canRetry() {
+        return this.retryCount < MAX_RETRY_COUNT && this.status == UploadStatus.FAILED;
+    }
+
+    public void incrementRetryCount() {
+        if (!canRetry()) {
+            throw new IllegalStateException(
+                "Cannot increment retry count. Current: "+ this.retryCount
+                + ", Max: " + MAX_RETRY_COUNT 
+                + ", Status: " + this.status
+            );
         }
-        return false;
+        this.retryCount++;
     }
     
     /**

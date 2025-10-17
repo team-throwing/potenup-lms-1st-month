@@ -14,7 +14,7 @@ package com.lms.domain.asset;
  *            ↓
  *          FAILED (최종 실패, 3회 초과)
  * </pre>
- * DB에 저장시 {@link #toDb()} 호출
+ * DB에 저장시 {@link #forDatabase()} 호출
  * 
  * @see Asset
  * @see AssetService
@@ -44,7 +44,7 @@ public enum UploadStatus {
     /**
      * 업로드 실패 상태.
      * 업로드 중 오류가 발생하여 실패한 상태.
-     * 재시도 가능 여부는 {@link Asset#retryAble()}로 확인.
+     * 재시도 가능 여부는 {@link Asset#canRetry()}로 확인.
      * DB 저장값: "FAILED"
      */
     FAILED("FAILED"), 
@@ -75,7 +75,7 @@ public enum UploadStatus {
      * 
      * @return DB 저장용 상태 문자열 ("ACCEPTED", "SUCCESS", "FAILED" 중 하나)
      */
-    public String toDb() {
+    public String forDatabase() {
         return this.value;
     }
 }
