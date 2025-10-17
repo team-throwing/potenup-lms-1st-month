@@ -15,6 +15,7 @@ out/
 !**/src/test/**/out/
 gradlew
 gradlew.bat
+application.properties
 
 ### Eclipse ###
 .apt_generated
