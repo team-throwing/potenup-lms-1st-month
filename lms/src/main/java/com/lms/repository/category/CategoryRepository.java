@@ -40,6 +40,7 @@ public interface CategoryRepository {
     /**
      * @param id 상위 카테고리 id
      * @return 소속 하위 카테고리 List. 이 List 는 비어있을 수 있음
+     * @throws IllegalArgumentException id 가 음수
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     List<Category> findChildrenByParentId(int id);
