@@ -22,7 +22,7 @@ public class DbUtils {
      * @param conn 커넥션
      * @param e JDBC 에서 발생한 SQLException
      */
-    public void exitOrThrow(Connection conn, SQLException e) {
+    public void handleSQLException(Connection conn, SQLException e) {
 
         Throwable throwable = exceptionConverter.convert(e);
 
