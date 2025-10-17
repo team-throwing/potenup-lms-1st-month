@@ -36,14 +36,6 @@ public interface CategoryRepository {
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
      */
     List<Category> findAllByCategoryLevel(CategoryLevel categoryLevel);
-    
-    /**
-     * @param id 하위 카테고리 id
-     * @return 상위 카테고리 또는 Optional.empty()
-     * @throws IllegalArgumentException id 가 음수
-     * @throws DatabaseException 복구 가능한 데이터베이스 예외
-     */
-    Optional<Category> findParentByChildId(int id);
 
     /**
      * @param id 상위 카테고리 id
