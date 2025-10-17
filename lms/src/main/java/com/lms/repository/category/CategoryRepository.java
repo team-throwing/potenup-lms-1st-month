@@ -11,7 +11,7 @@ public interface CategoryRepository {
 
     /**
      * @param category 강좌 카테고리
-     * @return 카테고리
+     * @return 카테고리(null 일 수 있으므로 반드시 확인 해야 함)
      * @throws IllegalArgumentException <br/>
      *      <ul>
      *          <li>category 가 null</li>

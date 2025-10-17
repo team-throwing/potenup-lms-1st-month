@@ -12,7 +12,7 @@ public interface CourseRepository {
 
     /**
      * @param course 강좌 id
-     * @return 강좌
+     * @return 강좌(null 일 수 있으므로 반드시 확인 해야 함)
      * @throws IllegalArgumentException <br/>
      *      <ul>
      *          <li>course 가 null</li>
