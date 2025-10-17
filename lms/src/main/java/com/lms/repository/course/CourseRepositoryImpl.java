@@ -107,7 +107,7 @@ public class CourseRepositoryImpl implements CourseRepository {
                         = sectionRepository.createAllSectionsOfCourse(course.sections(), id);
 
                 // rebuild 및 반환
-                Course created = Course.rebuild(rebuildCourse);
+                return Course.rebuild(rebuildCourse);
             }
             // b. 예외 처리
         } catch (SQLException e) {
