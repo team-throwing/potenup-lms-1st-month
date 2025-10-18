@@ -104,7 +104,7 @@ public class Course {
          */
         balanceSeqBeforeSectionAdded(newSection);
 
-        sections.add(Section.create(section));
+        sections.add(newSection);
         sections.sort(Comparator.comparing(Section::getSeq));
 
         touched();
