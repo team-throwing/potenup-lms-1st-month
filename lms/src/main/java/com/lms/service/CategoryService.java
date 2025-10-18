@@ -2,7 +2,8 @@ package com.lms.service;
 import com.lms.dto.CategoryRequestDto; // dto 있다는 가정
 import com.lms.domain.category.Category;
 import com.lms.repository.category.CategoryRepository;
-
+import com.lms.repository.config.DataSourceFactory;
+import com.lms.repository.config.RepositoryConfig;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -10,12 +11,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class CategoryService {
+    private final CategoryRepository categoryRepository = RepositoryConfig.categoryRepository();
 
-    private final CategoryRepository categoryRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+
 
 
     // DTO → 엔티티 변환
@@ -36,7 +35,7 @@ public class CategoryService {
     public void createCategory(CategoryRequestDto dto) {
         Connection conn = null; // 기본 연결상태 null
         try {
-            conn = DataSource.getConnection(); // 단일 DAO라서 굳이 필요없지만 일단 넣음
+            conn = DataSourceFactory.get().getConnection();
             ConnectionHolder.set(conn);
             conn.setAutoCommit(false);
 
@@ -67,7 +66,7 @@ public class CategoryService {
     public void updateCategory(CategoryRequestDto dto) {
         Connection conn = null;
         try {
-            conn = DataSource.getConnection();
+            conn = DataSourceFactory.get().getConnection();
             ConnectionHolder.set(conn);
             conn.setAutoCommit(false);
 
@@ -104,14 +103,14 @@ public class CategoryService {
 
     //  삭제
 
-    public void deleteCategory(Long id) {
+    public void deleteCategory(int id) {
         Connection conn = null;
         try {
-            conn = DataSource.getConnection();
+            conn = DataSourceFactory.get().getConnection();
             ConnectionHolder.set(conn);
             conn.setAutoCommit(false);
 
-            if (id == null) throw new IllegalArgumentException("ID는 필수");
+            if (id < 0) throw new IllegalArgumentException("ID는 필수");
 
             if (categoryRepository.findById(id).isEmpty())
                 throw new IllegalStateException("존재하지 않는 카테고리");
@@ -134,13 +133,13 @@ public class CategoryService {
     }
 
  //조회
-    public Category findCategory(Long id) throws SQLException {
+    public Category findCategory(int id) throws SQLException {
         Connection conn = null;
         try {
-            conn = DataSource.getConnection();
+            conn = DataSourceFactory.get().getConnection();
             ConnectionHolder.set(conn);
 
-            if (id == null) throw new IllegalArgumentException("ID는 필수");
+            if (id < 0) throw new IllegalArgumentException("ID는 필수");
 
             Category category = categoryRepository.findById(id)
                     .orElseThrow(() -> new IllegalStateException("존재하지 않는 카테고리"));
@@ -162,7 +161,7 @@ public class CategoryService {
     public List<Category> findAllCategories() {
         Connection conn = null;
         try {
-            conn = DataSource.getConnection();
+            conn = DataSourceFactory.get().getConnection();
             ConnectionHolder.set(conn);
 
             List<Category> categories = categoryRepository.findAll(); // findAll()은 repository에서 구현 필요
