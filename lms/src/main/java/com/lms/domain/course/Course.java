@@ -1,12 +1,18 @@
 package com.lms.domain.course;
 
+import com.lms.domain.course.spec.creation.CreateContent;
 import com.lms.domain.course.spec.creation.CreateCourse;
+import com.lms.domain.course.spec.creation.CreateSection;
 import com.lms.domain.course.spec.rebuild.RebuildCourse;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.lms.domain.course.constvalue.ConstValue.NEXT_SEQ;
 
 public class Course {
     @Getter
@@ -86,9 +92,82 @@ public class Course {
         return List.copyOf(sections);
     }
 
+    public void addSection(CreateSection section) {
+        if (section == null) return;
+
+        Section newSection = Section.create(section);
+
+        /*
+         * 만약 같은 seq가 존재할 경우
+         * 기존의 section의 순번을 1만큼 뒤로 밀고
+         * 기존의 순번 자리에 새로운 섹션을 넣는다.
+         */
+        balanceSeqBeforeSectionAdded(newSection);
+
+        sections.add(newSection);
+        sections.sort(Comparator.comparing(Section::getSeq));
+
+        touched();
+    }
+
+    public void deleteSection(Integer deletedSectionId) {
+        sections.removeIf(section -> section.getSeq().equals(deletedSectionId));
+        balanceSeqAfterSectionDeleted();
+        touched();
+    }
+
+    private void balanceSeqBeforeSectionAdded(Section newSection) {
+        if (isLastSequence(newSection.getSeq())) {
+            newSection.specifiedSeq(getLastSeq());
+        }
+
+        this.sections.stream()
+            .filter(section -> section.getSeq() >= newSection.getSeq())
+            .forEach(Section::nextSeq);
+    }
+
+    private void balanceSeqAfterSectionDeleted() {
+        AtomicInteger index = new AtomicInteger();
+
+        sections.stream().sorted(Comparator.comparing(Section::getSeq))
+            .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
+    }
+
+    public void addContent(CreateContent content, Integer sectionId) {
+        if (content == null) return;
+
+        Content newContent = Content.create(content);
+
+        sections.stream()
+            .filter(section -> section.getId().equals(sectionId)).findFirst()
+            .ifPresent(section -> section.addContent(newContent));
+
+        touched();
+    }
+
+    public void deleteContent(Long contentId, Integer sectionId) {
+        sections.stream()
+            .filter(section -> section.getId().equals(sectionId)).findFirst()
+            .ifPresent(section -> section.deleteContent(contentId));
+
+        touched();
+    }
+
+    private boolean isLastSequence(Integer seq) {
+        return sections.size() < seq;
+    }
+
+    private Integer getLastSeq() {
+        return sections.size() + NEXT_SEQ;
+    }
+
     private void validateTitle(String title) throws IllegalArgumentException {
         Optional.ofNullable(title).orElseThrow(() ->
             new IllegalArgumentException("강의의 제목이 없습니다. 값을 확인해주세요.")
         );
+    }
+
+    private void touched() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
