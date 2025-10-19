@@ -4,7 +4,7 @@ import com.lms.domain.category.Category;
 import com.lms.repository.course.CourseRepository;
 import lombok.Builder;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,10 +49,10 @@ public record CourseInfoSearchFilter(
         String keyword,
         KeywordSearchScope keywordSearchScope,
         List<Category> categorySearchScope,
-        LocalDate createdAtFrom,
-        LocalDate createdAtTo,
-        LocalDate updatedAtFrom,
-        LocalDate updatedAtTo,
+        LocalDateTime createdAtFrom,
+        LocalDateTime createdAtTo,
+        LocalDateTime updatedAtFrom,
+        LocalDateTime updatedAtTo,
         String userName,
         Integer pageSize,
         Integer pageNum
