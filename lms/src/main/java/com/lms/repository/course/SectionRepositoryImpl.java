@@ -12,6 +12,7 @@ import com.lms.service.ConnectionHolder;
 
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SectionRepositoryImpl implements SectionRepository {
 
@@ -126,10 +127,16 @@ public class SectionRepositoryImpl implements SectionRepository {
         }
 
         // 2. SQL 작성
-        String sql = """
+        StringBuilder sql = new StringBuilder(
+                """
                 DELETE FROM section
-                WHERE id IN (?)
-                """;
+                WHERE id IN (
+                """
+        );
+        sql.append(sectionIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "))
+        ).append(")");
 
         // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
         Connection conn = ConnectionHolder.get();
@@ -138,10 +145,7 @@ public class SectionRepositoryImpl implements SectionRepository {
         try {
 
             // a. 처리 유형 (2): update | delete - executeUpdate -> affectedRowCount (no ResultSet)
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-                // SQL 와일드 카드에 값 채우기
-                pstmt.setArray(1, conn.createArrayOf("INT", sectionIds.toArray()));
+            try (PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
                 // SQL 실행
                 boolean isNotDeleted = pstmt.executeUpdate() <= 0;
@@ -228,7 +232,10 @@ public class SectionRepositoryImpl implements SectionRepository {
                     }
                 }
                 toBeDeletedContentIds.removeAll(toBeUpdatedContentIds);
-                contentRepository.deleteAll(toBeDeletedContentIds);
+
+                if (!toBeDeletedContentIds.isEmpty()) {
+                    contentRepository.deleteAll(toBeDeletedContentIds);
+                }
 
                 // 컨텐츠 수정
                 // SectionId -> contents
