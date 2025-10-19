@@ -1,24 +1,16 @@
 package com.lms.view;
 
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class SearchMenu {
-    private final CategoryManagement  categoryManagement;
-//    private final CourseManagement  courseManagement;
+    CategoryManagement categoryManagement = new CategoryManagement();
+    CourseManagement courseManagement = new CourseManagement();
+    CourseMenu courseMenu = new CourseMenu();
 
-    public SearchMenu(CategoryManagement categoryManagement) {
-        this.categoryManagement = categoryManagement;
-    }
-
-//    public SearchMenu(CategoryManagement categoryManagement, CourseManagement courseManagement) {
-//        this.categoryManagement = categoryManagement;
-//        this.courseManagement = courseManagement;
-//    }
-
-    public void showSearchMenu(Scanner scanner) {
+    public void showSearchMenu(Scanner scanner) throws SQLException {
 
         while (true) {
-            // 최상위 카테고리 목록 출력
             System.out.println("1. 카테고리 조회");
             System.out.println("2. 강좌 검색");
             System.out.println("3. 뒤로가기");
@@ -28,14 +20,12 @@ public class SearchMenu {
 
             switch (userInput) {
                 case 1:
-                    categoryManagement.showCategoryLevelOne(scanner);   // 상위 카테고리 목록 조회
-                    categoryManagement.showCategoryLevelTwo(scanner);   // 부모 카테고리 ID로 자식 카테고리 목록 조회
-//                    courseManagement.showCourseByCategoryId(scanner); // 자식 카테고리 ID에 있는 강좌 목록 조회
-//                    courseManagement.showCourseMenu(scanner);         // 강좌 id를 입력해서 해당 코스 메뉴로 진입
+                    categoryManagement.showCategory(scanner);   // 모든 카테고리 조회
+                    courseMenu.searchCourseByCategory(scanner); // 카테고리 id 입력 후 해당 카테고리 코스 추가 및 코스 상세 메뉴 진입
                     break;
                 case 2:
-//                    courseManagement.showCourseByKeyword(scanner);    // 강좌 검색 후 관련 강좌 목록 조회
-//                    courseManagement.showCourseMenu(scanner);         // 강좌 id를 입력해서 해당 강좌 메뉴로 진입
+                    courseManagement.searchCourseWithFilter(scanner);    // 강좌 검색 후 관련 강좌 목록 조회
+                    courseManagement.selectCourse(scanner);
                     break;
                 case 3:
                     return;
