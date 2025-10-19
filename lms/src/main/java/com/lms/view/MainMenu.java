@@ -5,14 +5,6 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private final CategoryMenu categoryMenu;
-    private final SearchMenu searchMenu;
-    public MainMenu(CategoryMenu categoryMenu, SearchMenu searchMenu) {
-        this.categoryMenu = categoryMenu;
-        this.searchMenu = searchMenu;
-    }
-
-
     public void showMainMenu(Scanner scanner) throws SQLException {
         System.out.println("\nTeam Janban 1st_lms_project");
         while (true) {
@@ -30,11 +22,11 @@ public class MainMenu {
             switch (userInput) {
                 case 1:
                     // 조회 메뉴 진입
-                    searchMenu.showSearchMenu(scanner);
+                    new SearchMenu().showSearchMenu(scanner);
                     break;
                 case 2:
                     // 카테고리 관리 메뉴 진입
-                    categoryMenu.showCategoryManagementMenu(scanner);
+                    new CategoryMenu().showCategoryManagementMenu(scanner);
                     break;
                 case 3:
                     System.exit(0);
