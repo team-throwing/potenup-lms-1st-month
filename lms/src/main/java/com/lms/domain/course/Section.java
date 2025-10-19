@@ -5,8 +5,10 @@ import com.lms.domain.course.spec.rebuild.RebuildSection;
 import com.lms.util.Validation;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,18 +22,6 @@ public class Section {
     private String name;
     private Integer seq;
     private List<Content> contents;
-
-    private Section(
-        Integer id, String name, Integer seq, List<Content> contents
-    ) throws IllegalArgumentException {
-        validateName(name);
-        validateSeq(seq);
-
-        this.id = id;
-        this.name = name;
-        this.seq = seq;
-        this.contents = contents;
-    }
 
     static Section create(CreateSection createSection) throws IllegalArgumentException {
         List<Content> initialContent = Optional.ofNullable(createSection.contents())
@@ -47,17 +37,21 @@ public class Section {
     }
 
     static Section rebuild(RebuildSection rebuildSection) throws IllegalArgumentException {
-        List<Content> initialContent = Optional.ofNullable(rebuildSection.contents())
+        List<Content> initialContents = Optional.ofNullable(rebuildSection.contents())
             .orElse(List.of())
             .stream().map(Content::rebuild).toList();
 
-        return new Section(rebuildSection.id(), rebuildSection.name(), rebuildSection.seq(), initialContent);
+        return new Section(
+            rebuildSection.id(), rebuildSection.name(),
+            rebuildSection.seq(), new ArrayList<>(initialContents)
+        );
     }
 
     void addContent(Content newContent) {
         balanceSeqBeforeContentAdded(newContent);
 
         contents.add(newContent);
+        contents.sort(Comparator.comparing(Content::getSeq));
     }
 
     private void balanceSeqBeforeContentAdded(Content newContent) {
@@ -66,17 +60,46 @@ public class Section {
         }
 
         this.contents.stream()
-            .filter(section -> section.getSeq().equals(newContent.getSeq()))
-            .findFirst().ifPresent(Content::nextSeq);
+            .filter(content -> shouldShiftSeq(newContent, content))
+            .forEach(Content::nextSeq);
     }
 
     void deleteContent(Long contentId) {
-        contents.removeIf(content -> content.getId().equals(contentId));
-        balanceSeqAfterSectionDeleted();
+        if (contents.removeIf(content -> Objects.equals(content.getId(),contentId))){
+            balanceSeqAfterContentDeleted();
+        }
     }
 
-    private void balanceSeqAfterSectionDeleted() {
-        AtomicInteger index = new AtomicInteger();
+    void nextSeq() {
+        this.seq++;
+    }
+
+    void specifiedSeq(Integer specifiedSeq) {
+        this.seq =  specifiedSeq;
+    }
+
+    void rename(String name) {
+        validateName(name);
+        this.name = name;
+    }
+
+    void renameContent(Long contentId, String name) {
+        findContentOrThrow(contentId).rename(name);
+    }
+
+    private Content findContentOrThrow(Long contentId) {
+        return contents.stream()
+            .filter(content -> Objects.equals(content.getId(), contentId))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("컨텐츠를 찾을 수 없습니다. id=" + contentId));
+    }
+
+    private boolean shouldShiftSeq(Content existing, Content incoming) {
+        return existing.getSeq() >= incoming.getSeq();
+    }
+
+    private void balanceSeqAfterContentDeleted() {
+        AtomicInteger index = new AtomicInteger(NEXT_SEQ);
 
         contents.stream().sorted(Comparator.comparing(Content::getSeq))
             .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
@@ -89,26 +112,31 @@ public class Section {
     private Integer getLastSeq() {
         return contents.size() + NEXT_SEQ;
     }
-    
-    void nextSeq() {
-        this.seq++;
-    }
-
-    void specifiedSeq(Integer specifiedSeq) {
-        this.seq =  specifiedSeq;
-    }
 
     private void validateName(String name) throws IllegalArgumentException {
-        Optional.ofNullable(name).orElseThrow(() ->
-            new IllegalArgumentException("섹션의 이름이 비었습니다.")
-        );
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("섹션의 이름이 비었습니다.");
+        }
     }
 
     private void validateSeq(Integer seq) throws IllegalArgumentException {
-        Validation.requirePositive(seq, "섹션 순서는 음수가 될 수 없습니다.");
-
         Optional.ofNullable(seq).orElseThrow(() ->
             new IllegalArgumentException("섹션의 순서 번호가 알맞지 않습니다. 값을 확인해주세요.")
         );
+
+        Validation.requirePositive(seq, "섹션 순서는 음수가 될 수 없습니다.");
+
+    }
+
+    private Section(
+        Integer id, String name, Integer seq, List<Content> contents
+    ) throws IllegalArgumentException {
+        validateName(name);
+        validateSeq(seq);
+
+        this.id = id;
+        this.name = name;
+        this.seq = seq;
+        this.contents = contents;
     }
 }
