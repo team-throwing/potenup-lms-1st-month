@@ -26,7 +26,7 @@ public class CategoryMenu {
                     categoryManagement.addCategory(scanner);
                     break;
                 case 2:
-                    categoryManagement.showCategory(scanner);
+                    categoryManagement.findAllCategory(scanner);
                     break;
                 case 3:
                     categoryManagement.updateCategory(scanner);
