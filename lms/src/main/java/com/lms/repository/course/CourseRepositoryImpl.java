@@ -1,15 +1,19 @@
 package com.lms.repository.course;
 
 import com.lms.domain.course.Course;
+import com.lms.domain.course.Section;
+import com.lms.domain.course.spec.rebuild.RebuildContent;
 import com.lms.domain.course.spec.rebuild.RebuildCourse;
 import com.lms.domain.course.spec.rebuild.RebuildSection;
 import com.lms.repository.course.dto.CourseInfo;
 import com.lms.repository.course.dto.CourseInfoSearchFilter;
 import com.lms.repository.exception.DatabaseException;
+import com.lms.repository.exception.ModificationTargetNotFoundException;
 import com.lms.repository.exception.converter.DbUtils;
 import com.lms.service.ConnectionHolder;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class CourseRepositoryImpl implements CourseRepository {
@@ -120,7 +124,109 @@ public class CourseRepositoryImpl implements CourseRepository {
 
     @Override
     public Optional<Course> findById(int id) {
-        return Optional.empty();
+
+        // 1. 파라미터 검증
+        if (id < 0) {
+            throw new IllegalArgumentException("id 가 음수입니다.");
+        }
+
+        // 2. SQL 작성
+        String sql = """
+                SELECT
+                    course.id as course_id, course.title as course_title, course.category_id as course_category_id,
+                    course.summary as course_summary, course.detail as course_detail, course.user_id as course_user_id,
+                    course.created_at as course_created_at, course.updated_at as course_updated_at,
+                    
+                    section.id as section_id, section.name as section_name, section.seq as section_seq,
+                    
+                    content.id as content_id, content.name as content_name, content.seq as content_seq,
+                    content.body as content_body
+                FROM course
+                LEFT JOIN section ON course.id = section.course_id
+                LEFT JOIN content ON section.id = content.section_id
+                WHERE course.id=?;
+                """;
+
+        // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
+        Connection conn = ConnectionHolder.get();
+
+        // 4. JDBC 를 통해 SQL 문 실행 및 결과 처리
+        try {
+
+            // a. 처리 유형 (3): select- executeQuery -> ResultSet
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // SQL 와일드 카드에 값 채우기
+                pstmt.setInt(1, id);
+
+                // SQL 실행
+                RebuildCourse rebuildCourse = null;
+                List<RebuildSection> rebuildSections = new ArrayList<>();
+                Map<Integer, List<RebuildContent>> rebuildContentsBySection = new HashMap<>();
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+
+                        if (rebuildCourse == null) {
+                            Timestamp updated_at = rs.getTimestamp("course_updated_at");
+                            rebuildCourse = new RebuildCourse(
+                                    rs.getInt("course_id"),
+                                    rs.getString("course_title"),
+                                    rs.getString("course_summary"),
+                                    rs.getString("course_detail"),
+                                    rs.getInt("course_category_id"),
+                                    rs.getLong("course_user_id"),
+                                    rebuildSections,
+                                    rs.getTimestamp("course_created_at").toLocalDateTime(),
+                                    updated_at == null ? null : updated_at.toLocalDateTime()
+                            );
+                        }
+
+                        int sectionId = rs.getInt("section_id");
+                        rebuildContentsBySection.compute(sectionId, (k, v) -> {
+                            try {
+
+                                if (v == null) {
+                                    v = new ArrayList<>();
+                                    rebuildSections.add(new RebuildSection(
+                                            sectionId,
+                                            rs.getInt("section_seq"),
+                                            rs.getString("section_name"),
+                                            v
+                                    ));
+                                }
+
+                                v.add(new RebuildContent(
+                                        rs.getLong("content_id"),
+                                        rs.getString("content_name"),
+                                        rs.getInt("content_seq"),
+                                        rs.getString("content_body")
+                                ));
+
+                                return v;
+
+                            } catch (SQLException e) {
+                                dbUtils.handleSQLException(conn, e);
+
+                                // 코드가 의도대로 올바르게 구현된 경우 여기에 도달할 수 없습니다.
+                                return null;
+                            }
+                        });
+                    }
+                }
+
+                // Course 생성 및 반환
+                if (rebuildCourse == null) {
+                    return Optional.empty();
+                }
+                return Optional.of(Course.rebuild(rebuildCourse));
+            }
+            // b. 예외 처리
+        } catch (SQLException e) {
+            dbUtils.handleSQLException(conn, e);
+        }
+
+        // x. 코드가 의도대로 올바르게 구현된 경우 여기에 도달할 수 없습니다.
+        throw new RuntimeException("CategoryRepositoryImpl.create: 도달 불가능하도록 의도된 지점에 도달했습니다.");
     }
 
     @Override
@@ -129,12 +235,150 @@ public class CourseRepositoryImpl implements CourseRepository {
     }
 
     @Override
-    public void update(Course course) {
+    public void update(Course updatedCourse) {
 
+        // 1. 파라미터 검증
+        if (updatedCourse == null) {
+            throw new IllegalArgumentException("updatedCourse 가 null");
+        }
+
+        // 2. 업데이트 하지 않은 원래 강좌를 가져오기
+        Course originalCourse = null;
+        Optional<Course> optionalCourse = findById(updatedCourse.getId());
+        if (optionalCourse.isEmpty()) {
+            throw new ModificationTargetNotFoundException("수정할 강좌를 찾지 못했습니다.", null);
+        }
+        originalCourse = optionalCourse.get();
+
+        /*
+            1. updatedCourse 를 업데이트 한다.
+            2. 삭제 부분(원본 - 수정본)은 delete 를 수행한다.
+                2.1. section 먼저
+                2.2. content 그 다음
+            3. 교집합과 추가 부분(수정본-원본) == 수정본은 insert into on duplicate key update 를 수행한다.
+                3.1. section
+                3.2. content
+         */
+
+        // 2. SQL 작성
+        String sql = """
+                UPDATE course
+                SET
+                    title=?,
+                    category_id=?,
+                    summary=?,
+                    detail=?,
+                    user_id=?,
+                    updated_at=?
+                WHERE id=?
+                """;
+
+        // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
+        Connection conn = ConnectionHolder.get();
+
+        // 4. JDBC 를 통해 SQL 문 실행 및 결과 처리
+        try {
+
+            // a. 처리 유형 (2): update | delete - executeUpdate -> affectedRowCount (no ResultSet)
+            try (PreparedStatement pstmt = conn.prepareStatement(sql /*, Statement.RETURN_GENERATED_KEYS*/)) {
+
+                // SQL 와일드 카드에 값 채우기
+                pstmt.setString(1, updatedCourse.getTitle());
+                pstmt.setInt(2, updatedCourse.getSubCategoryId());
+                pstmt.setString(3, updatedCourse.getSummary());
+                pstmt.setString(4, updatedCourse.getDetail());
+                pstmt.setLong(5, updatedCourse.getUserId());
+                if (updatedCourse.getUpdatedAt() == null) {
+                    pstmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+                } else {
+                    pstmt.setTimestamp(6, Timestamp.valueOf(updatedCourse.getUpdatedAt()));
+                }
+                pstmt.setInt(7, updatedCourse.getId());
+
+                // SQL 실행
+                boolean isNotUpdated = pstmt.executeUpdate() <= 0;
+                if (isNotUpdated) {
+                    throw new ModificationTargetNotFoundException("수정할 강좌를 찾을 수 없습니다.", null);
+                }
+
+                // 원본 섹션 id 집합 만들기
+                Set<Integer> originalSectionIdSet = new HashSet<>();
+                List<Section> originalSections = originalCourse.sections();
+                for (Section section : originalSections) {
+                    originalSectionIdSet.add(section.getId());
+                }
+
+                // 수정본 섹션 id 집합 만들기
+                Set<Integer> toBeUpdatedSectionIdSet = new HashSet<>();
+                List<Section> updatedSections = updatedCourse.sections();
+                for (Section section : updatedSections) {
+                    if (section.getId() != null) {
+                        toBeUpdatedSectionIdSet.add(section.getId());
+                    }
+                }
+
+                // 제거 대상인 차집합(원본 - 수정본) 섹션 id 집합을 만듭니다.
+                Set<Integer> toBeDeletedSectionIdSet = new HashSet<>(originalSectionIdSet);
+                toBeDeletedSectionIdSet.removeAll(toBeUpdatedSectionIdSet);
+                
+                // 섹션 삭제
+                sectionRepository.deleteAll(toBeDeletedSectionIdSet);
+                
+                // 섹션 수정 - 이 과정에서 컨텐츠 역시 삭제 또는 수정됩니다.
+                sectionRepository.updateAllGivenSectionsOfCourse(updatedSections, originalCourse);
+            }
+            // b. 예외 처리
+        } catch (SQLException e) {
+            dbUtils.handleSQLException(conn, e);
+        }
+
+        // x. 코드가 의도대로 올바르게 구현된 경우 여기에 도달할 수 없습니다.
+        throw new RuntimeException("CategoryRepositoryImpl.create: 도달 불가능하도록 의도된 지점에 도달했습니다.");
     }
 
     @Override
     public void delete(int id) {
 
+        // 1. 파라미터 검증
+        if (id < 0) {
+            throw new IllegalArgumentException("id 가 음수");
+        }
+
+        // 2. SQL 작성
+        String sql = """
+                DELETE FROM course
+                WHERE id=?
+                """;
+
+        // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
+        Connection conn = ConnectionHolder.get();
+
+        // 4. JDBC 를 통해 SQL 문 실행 및 결과 처리
+        try {
+
+            // a. 처리 유형 (1): create - executeUpdate -> t/f (with ResultSet for auto inc key)
+            // a. 처리 유형 (2): update | delete - executeUpdate -> affectedRowCount (no ResultSet)
+            // a. 처리 유형 (3): select- executeQuery -> ResultSet
+            try (PreparedStatement pstmt = conn.prepareStatement(sql /*, Statement.RETURN_GENERATED_KEYS*/)) {
+
+                // SQL 와일드 카드에 값 채우기
+                pstmt.setInt(1, id);
+
+                // SQL 실행
+                boolean isDeleteFail = pstmt.executeUpdate() <= 0;
+                if (isDeleteFail) {
+                    throw new ModificationTargetNotFoundException("삭제할 강좌를 찾을 수 없습니다.", null);
+                }
+
+                // 결과를 적절하게 처리
+                return;
+            }
+            // b. 예외 처리
+        } catch (SQLException e) {
+            dbUtils.handleSQLException(conn, e);
+        }
+
+        // x. 코드가 의도대로 올바르게 구현된 경우 여기에 도달할 수 없습니다.
+        throw new RuntimeException("CategoryRepositoryImpl.create: 도달 불가능하도록 의도된 지점에 도달했습니다.");
     }
 }
