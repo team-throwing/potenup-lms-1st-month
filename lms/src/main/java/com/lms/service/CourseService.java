@@ -203,4 +203,67 @@ public class CourseService {
             throw new DatabaseError("콘텐츠 삭제 중 SQLException 발생", e);
         }
     }
+
+    // =========================
+    // 공지사항 CRUD
+    // =========================
+
+    public Notice createNotice(String body) {
+        try (Connection conn = DataSourceFactory.get().getConnection()) {
+            conn.setAutoCommit(false);
+
+            Notice notice = new Notice(null, body).create(body);
+            noticeRepository.create(notice);
+
+            conn.commit();
+            return notice;
+
+        } catch (DatabaseException e) {
+            throw new DatabaseError("공지사항 생성 중 데이터베이스 오류 발생", e);
+        } catch (SQLException e) {
+            throw new DatabaseError("공지사항 생성 중 SQLException 발생", e);
+        }
+    }
+
+    public Notice findNoticeById(Long id) {
+        try {
+            return noticeRepository.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
+        } catch (DatabaseException e) {
+            throw new DatabaseError("공지사항 조회 중 데이터베이스 오류 발생", e);
+        }
+    }
+
+    public void updateNotice(Long id, String newBody) {
+        try (Connection conn = DataSourceFactory.get().getConnection()) {
+            conn.setAutoCommit(false);
+
+            Notice notice = noticeRepository.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
+
+            notice = notice.rebuild(id, newBody);
+            noticeRepository.update(notice);
+
+            conn.commit();
+
+        } catch (DatabaseException e) {
+            throw new DatabaseError("공지사항 수정 중 데이터베이스 오류 발생", e);
+        } catch (SQLException e) {
+            throw new DatabaseError("공지사항 수정 중 SQLException 발생", e);
+        }
+    }
+
+    public void deleteNotice(Long id) {
+        try (Connection conn = DataSourceFactory.get().getConnection()) {
+            conn.setAutoCommit(false);
+
+            noticeRepository.delete(id);
+            conn.commit();
+
+        } catch (DatabaseException e) {
+            throw new DatabaseError("공지사항 삭제 중 데이터베이스 오류 발생", e);
+        } catch (SQLException e) {
+            throw new DatabaseError("공지사항 삭제 중 SQLException 발생", e);
+        }
+    }
 }
