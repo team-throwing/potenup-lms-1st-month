@@ -78,11 +78,11 @@ public class AssetService implements AutoCloseable {
      * @return 생성된 Asset List
      * @see AssetServiceCreate
      */
-    public List<Asset> submitUploadFileList(List<AssetServiceCreate> assetcreateList) throws IllegalArgumentException {
-        List<CreateAsset> createassetList = Optional.ofNullable(
-            assetcreateList).orElse(List.of())
+    public List<Asset> submitUploadFileList(List<AssetServiceCreate> assetCreateList) throws IllegalArgumentException {
+        List<CreateAsset> createAssetList = Optional.ofNullable(
+            assetCreateList).orElse(List.of())
             .stream().map(AssetServiceCreate::toCreateAsset).toList();
-        List<Asset> assetList = createassetList.stream()
+        List<Asset> assetList = createAssetList.stream()
             .map(Asset::create)
             .toList();
         
