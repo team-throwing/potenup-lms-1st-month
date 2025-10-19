@@ -14,6 +14,7 @@ public record CourseInfo (
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         Long userId,
-        String userName
+        String userName,
+        Long totalCount
 ) {
 }
