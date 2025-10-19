@@ -47,8 +47,7 @@ public class NoticeService {
         }
     }
 
-    public void updateNotice(Long id, String newBody, Integer courseId,
-                             LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public void updateNotice(Long id, String newBody) {
         Connection conn = null;
         try {
             conn = DataSourceFactory.get().getConnection();
@@ -57,9 +56,13 @@ public class NoticeService {
 
             Notice notice = noticeRepository.findById(id)
                     .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
-            notice = notice.rebuild(id, newBody, courseId, createdAt, updatedAt);
+
+            // ✅ 도메인 로직을 통해 내부 상태 변경
+            notice.updateBody(newBody);
+
             noticeRepository.update(notice);
             conn.commit();
+
         } catch (SQLException | DatabaseException e) {
             rollbackSafely(conn);
             throw new DatabaseError("공지사항 수정 중 오류 발생", e);
@@ -68,6 +71,7 @@ public class NoticeService {
             closeSafely(conn);
         }
     }
+
 
     public void deleteNotice(Long id) {
         Connection conn = null;
