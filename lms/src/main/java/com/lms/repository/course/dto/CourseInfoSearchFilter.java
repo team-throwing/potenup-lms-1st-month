@@ -72,25 +72,27 @@ public record CourseInfoSearchFilter(
                 if `category` is subcategory and `category's parent` is in `the list`:
                     remove `category` in `the list`
          */
-        for (Category category : categorySearchScope) {
-            if (category.getParentId() == null) {
-                continue;
-            }
+        if (categorySearchScope != null) {
+            for (Category category : categorySearchScope) {
+                if (category.getParentId() == null) {
+                    continue;
+                }
 
-            for (Category parentCandidate : categorySearchScope) {
-                if (Objects.equals(category.getParentId(), parentCandidate.getId())) {
-                    categorySearchScope.remove(category);
+                for (Category parentCandidate : categorySearchScope) {
+                    if (Objects.equals(category.getParentId(), parentCandidate.getId())) {
+                        categorySearchScope.remove(category);
+                    }
                 }
             }
         }
 
         // createdAtFrom 과 createdAtTo 의 순서 검증
-        if (createdAtFrom.isAfter(createdAtTo)) {
+        if (createdAtFrom != null && createdAtTo != null && createdAtFrom.isAfter(createdAtTo)) {
             throw new IllegalArgumentException("createdAtFrom 은 createdAtTo 보다 뒤의 시점일 수 없습니다.");
         }
 
         // updatedAtFrom 과 updatedAtTo 의 순서 검증
-        if (updatedAtFrom.isAfter(updatedAtTo)) {
+        if (updatedAtFrom != null && updatedAtTo != null && updatedAtFrom.isAfter(updatedAtTo)) {
             throw new IllegalArgumentException("updatedAtFrom 은 updatedAtTo 보다 뒤의 시점일 수 없습니다.");
         }
 
