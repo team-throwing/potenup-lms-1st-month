@@ -17,6 +17,7 @@ import com.lms.service.ConnectionHolder;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CourseRepositoryImpl implements CourseRepository {
 
@@ -276,7 +277,17 @@ public class CourseRepositoryImpl implements CourseRepository {
         boolean isCategorySearchScopePresented
                 = (categorySearchScope != null && !categorySearchScope.isEmpty());
         if (isCategorySearchScopePresented) {
-            sql.append("AND category_id IN (?)").append("\n\t");   // setArray
+            sql.append("AND category_id IN (");
+
+            Set<Integer> categoryIds = new HashSet<>();
+            for (Category category : categorySearchScope) {
+                categoryIds.add(category.getId());
+            }
+
+            sql.append(categoryIds.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","))
+            ).append(")").append("\n\t");
         }
 
         // createdAt 범위
@@ -343,10 +354,6 @@ public class CourseRepositoryImpl implements CourseRepository {
                     if (!isUserNamePresented) {
                         pstmt.setString(++wildcardSeq, "%" + keyword + "%");
                     }
-                }
-                // 카테고리 범위
-                if (isCategorySearchScopePresented) {
-                    pstmt.setArray(++wildcardSeq, conn.createArrayOf("INT", categorySearchScope.toArray()));
                 }
                 // createdAt
                 if (isCreatedAtFromPresented) {
@@ -494,7 +501,9 @@ public class CourseRepositoryImpl implements CourseRepository {
                 toBeDeletedSectionIdSet.removeAll(toBeUpdatedSectionIdSet);
                 
                 // 섹션 삭제
-                sectionRepository.deleteAll(toBeDeletedSectionIdSet);
+                if (!toBeDeletedSectionIdSet.isEmpty()) {
+                    sectionRepository.deleteAll(toBeDeletedSectionIdSet);
+                }
                 
                 // 섹션 수정 - 이 과정에서 컨텐츠 역시 삭제 또는 수정됩니다.
                 sectionRepository.updateAllGivenSectionsOfCourse(updatedSections, originalCourse);
@@ -503,9 +512,6 @@ public class CourseRepositoryImpl implements CourseRepository {
         } catch (SQLException e) {
             dbUtils.handleSQLException(conn, e);
         }
-
-        // x. 코드가 의도대로 올바르게 구현된 경우 여기에 도달할 수 없습니다.
-        throw new RuntimeException("CategoryRepositoryImpl.create: 도달 불가능하도록 의도된 지점에 도달했습니다.");
     }
 
     @Override

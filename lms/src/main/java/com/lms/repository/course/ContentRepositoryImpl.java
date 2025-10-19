@@ -10,6 +10,7 @@ import com.lms.service.ConnectionHolder;
 
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ContentRepositoryImpl implements ContentRepository {
 
@@ -120,15 +121,21 @@ public class ContentRepositoryImpl implements ContentRepository {
     public void deleteAll(Set<Long> contentIds) {
 
         // 1. 파라미터 검증
-        if (contentIds == null) {
-            throw new IllegalArgumentException("contentIds 가 null");
+        if (contentIds == null || contentIds.isEmpty()) {
+            throw new IllegalArgumentException("contentIds 가 null 또는 empty");
         }
 
         // 2. SQL 작성
-        String sql = """
+        StringBuilder sql = new StringBuilder(
+                """
                 DELETE FROM content
-                WHERE id IN (?)
-                """;
+                WHERE id IN (
+                """
+        );
+        sql.append(contentIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "))
+        ).append(")");
 
         // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
         Connection conn = ConnectionHolder.get();
@@ -137,10 +144,7 @@ public class ContentRepositoryImpl implements ContentRepository {
         try {
 
             // a. 처리 유형 (2): update | delete - executeUpdate -> affectedRowCount (no ResultSet)
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-                // SQL 와일드 카드에 값 채우기
-                pstmt.setArray(1, conn.createArrayOf("BIGINT", contentIds.toArray()));
+            try (PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
                 // SQL 실행
                 boolean isNotCompleted = pstmt.executeUpdate() <= 0;
