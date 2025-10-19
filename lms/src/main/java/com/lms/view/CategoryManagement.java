@@ -1,9 +1,12 @@
 package com.lms.view;
 
+import com.lms.domain.category.Category;
 import com.lms.domain.category.CategoryLevel;
 import com.lms.dto.CategoryRequestDto;
 import com.lms.service.CategoryService;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 // 이름, 부모 카테고리, 카테고리 레벨
@@ -38,50 +41,91 @@ public class CategoryManagement {
                 System.out.println("잘못된 입력입니다. 1 또는 2를 입력하세요.");
         }
 
-        if (categoryLevel != null) {
-            CategoryRequestDto dto = new CategoryRequestDto(addCategoryName, categoryLevel, parentId);
-            categoryService.createCategory(dto);
-        }
+
+        CategoryRequestDto dto = new CategoryRequestDto(addCategoryName, categoryLevel, parentId);
+        categoryService.createCategory(dto);
+
     }
-    public void showCategory(Scanner scanner) {
-        System.out.println("=== 카테고리 목록 조회 메뉴 ===");
-        System.out.println("1. 카테고리 레벨에 속한 목록 조회");
-        System.out.println("2. 부모 카테고리에 속한 하위 카테고리 목록 조회");
-        System.out.print("조회 메뉴 선택: ");
-        int categorySearchInput = scanner.nextInt();
+
+    public void showCategoryLevelOne(Scanner scanner) {
+        System.out.println("=== 상위 카테고리 목록 ===");
+
+//        List<Category> categories = categoryService.findCategoryByLevel(CategoryLevel.ONE);
+//        for (Category category : categories) {
+//            System.out.println("ID: " + category.getId() + "Title" + category.getName());
+//        }
+    }
+
+    public void showCategoryLevelTwo(Scanner scanner) {
+        System.out.println("=== 하위 카테고리 조회 ===");
+        System.out.println("0 입력시 취소");
+        System.out.print("상위 카테고리 선택(id): ");
+
+        int inputId = scanner.nextInt();
         scanner.nextLine();
 
-        switch (categorySearchInput) {
-            case 1:
-                // 서비스 없음
-            case 2:
-                // 서비스 없음
+        if (inputId != 0) {
+            System.out.println("=== 하위 카테고리 목록 ===");
+//            List<Category> categories = categoryService.findCategoryByParentId(inputId);
+//            for (Category category : categories) {
+//            System.out.println("Id: " + category.getId() + "Title" + category.getName());
+//        }
+        } else {
+            System.out.println("하위 카테고리 조회를 취소했습니다.");
         }
+
+//
     }
 
-    public void updateCategory(Scanner scanner) {
+    public void updateCategory(Scanner scanner) throws SQLException {
         System.out.println("=== 카테고리 수정 ===");
         System.out.print("수정할 카테고리 id 입력: ");
         Integer updateCategoryId = scanner.nextInt();
         scanner.nextLine();
+
+        // 입력받은 카테고리 정보
+        Category category = categoryService.findCategory(updateCategoryId.longValue());
+        String categoryName = category.getName();
+        CategoryLevel categoryLevel = category.getLevel();
+        Integer updateParentId = category.getParentId();
+
+
+        System.out.println("=공란 시 기존 값 유지=");
         System.out.print("\n카테고리 이름 변경: ");
         String updateCategoryName = scanner.nextLine();
+        // 공란시 기존 값
+        if (updateCategoryName.isBlank()){
+            updateCategoryName = categoryName;
+        }
+
+        System.out.println("=공란 시 기존 값 유지=");
         System.out.print("\n카테고리 레벨 변경(1 or 2): ");
-        int updateCategoryLevel = scanner.nextInt();
+        String updateCategoryLevel = scanner.nextLine();
         scanner.nextLine();
 
-        CategoryLevel categoryLevel = null;
-        Integer updateParentId = null;
+        // 기본으로 기존 값 공란이 아닐 시 변경 값을 덮음
+        if (!updateCategoryLevel.isBlank()){
+            int levelNum = Integer.parseInt(updateCategoryLevel);
 
-        switch (updateCategoryLevel) {
-            case 1:
-                categoryLevel = CategoryLevel.ONE;
-                break;
-            case 2:
-                categoryLevel = CategoryLevel.TWO;
-                System.out.print("\n소속 카테고리 id 변경: ");
-                updateParentId = scanner.nextInt();
-                break;
+            switch (levelNum) {
+                case 1:
+                    categoryLevel = CategoryLevel.ONE;
+                    updateParentId = null;
+                    break;
+                case 2:
+                    categoryLevel = CategoryLevel.TWO;
+                    System.out.println("=공란 시 기존 값 유지=");
+                    System.out.print("소속 카테고리 ID 변경: ");
+                    String inputParentId =  scanner.nextLine();
+                    if (!inputParentId.isBlank()){
+                        updateParentId = Integer.parseInt(inputParentId);
+                    }
+                    break;
+                default:
+                    System.out.println("잘못된 입력입니다. 기존 값을 유지합니다.");
+                    return;
+            }
+
         }
         CategoryRequestDto dto = new CategoryRequestDto(updateCategoryId, updateCategoryName, categoryLevel, updateParentId);
         categoryService.updateCategory(dto);
@@ -94,4 +138,5 @@ public class CategoryManagement {
         scanner.nextLine();
         categoryService.deleteCategory(deleteCategoryId);
     }
+
 }
