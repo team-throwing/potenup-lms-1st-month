@@ -54,22 +54,20 @@ public class CategoryService {
         try (Connection conn = DataSourceFactory.get().getConnection()) {
             conn.setAutoCommit(false);
 
-            if (dto.getId() == null)
-                throw new IllegalArgumentException("수정 시 ID는 필수입니다.");
-
             Category category = categoryRepository.findById(dto.getId())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 카테고리입니다."));
 
-            category.rebuild(dto.getId(), dto.getName(), dto.getLevel(), dto.getParentId());
+            if (dto.getName() != null) category.changeName(dto.getName());
+            if (dto.getLevel() != null) category.changeLevel(dto.getLevel());
+            if (dto.getParentId() != null) category.changeParent(dto.getParentId());
+
             categoryRepository.update(category);
             conn.commit();
-
-        } catch (DatabaseException e) {
-            throw new DatabaseError("카테고리 수정 중 데이터베이스 오류 발생", e);
-        } catch (SQLException e) {
-            throw new DatabaseError("카테고리 수정 중 SQLException 발생", e);
+        } catch (Exception e) {
+            throw new DatabaseError("카테고리 수정 중 오류 발생", e);
         }
     }
+
 
     // =========================
     // 삭제
