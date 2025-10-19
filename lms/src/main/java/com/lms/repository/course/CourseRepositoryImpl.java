@@ -1,5 +1,6 @@
 package com.lms.repository.course;
 
+import com.lms.domain.category.Category;
 import com.lms.domain.course.Course;
 import com.lms.domain.course.Section;
 import com.lms.domain.course.spec.rebuild.RebuildContent;
@@ -7,6 +8,7 @@ import com.lms.domain.course.spec.rebuild.RebuildCourse;
 import com.lms.domain.course.spec.rebuild.RebuildSection;
 import com.lms.repository.course.dto.CourseInfo;
 import com.lms.repository.course.dto.CourseInfoSearchFilter;
+import com.lms.repository.course.dto.KeywordSearchScope;
 import com.lms.repository.exception.DatabaseException;
 import com.lms.repository.exception.ModificationTargetNotFoundException;
 import com.lms.repository.exception.converter.DbUtils;
@@ -231,7 +233,178 @@ public class CourseRepositoryImpl implements CourseRepository {
 
     @Override
     public List<CourseInfo> searchCourseInfo(CourseInfoSearchFilter filter) {
-        return null;
+
+        // 1. 파라미터 검증
+        if (filter == null) {
+            throw new IllegalArgumentException("filter 가 null 입니다.");
+        }
+
+        // 2. SQL 작성
+        // sql 앞 부분
+        String foreSql = """
+                WITH search_course_cte AS (
+                	SELECT c.id, title, summary, detail, category_id, created_at, updated_at, user_id
+                 		, u.name as user_name
+                 		, ROW_NUMBER() OVER(ORDER BY id) AS row_num
+                 	FROM course c JOIN user u ON c.user_id = u.id
+                    WHERE true
+                """;
+
+        // 검색 필터 적용
+        StringBuilder sql = new StringBuilder(foreSql).append("\n\t");
+
+        // 키워드
+        String keyword = filter.keyword();
+        boolean isKeywordNotNullAndNotBlank = (keyword != null && !keyword.isBlank());
+        boolean isUserNamePresented = filter.userName() != null;
+        if (isKeywordNotNullAndNotBlank) {
+            if (filter.keywordSearchScope() == KeywordSearchScope.TITLE) {
+                sql.append("AND MATCH(title) AGAINST(?)").append("\n\t");
+            } else if (filter.keywordSearchScope() == KeywordSearchScope.TITLE_SUMMARY) {
+                sql.append("AND MATCH(title, summary) AGAINST(?)").append("\n\t");
+            } else {
+                sql.append("AND MATCH(title, summary, detail) AGAINST(?)").append("\n\t");
+            }
+
+            // keyword 가 존재하면서 userName 이 제시되지 않은 경우 keyword 로 userName 도 검색
+            if (!isUserNamePresented) {
+                sql.append("OR u.name LIKE ?").append("\n\t");  // ? 위치에 %% 로 감싸진 키워드 삽입
+            }
+        }
+
+        // 카테고리 범위
+        List<Category> categorySearchScope = filter.categorySearchScope();
+        boolean isCategorySearchScopePresented
+                = (categorySearchScope != null && !categorySearchScope.isEmpty());
+        if (isCategorySearchScopePresented) {
+            sql.append("AND category_id IN (?)").append("\n\t");   // setArray
+        }
+
+        // createdAt 범위
+        Timestamp createdAtFromTimestamp
+                = filter.createdAtFrom() == null ? null : Timestamp.valueOf(filter.createdAtFrom());
+        Timestamp createdAtToTimestamp
+                = filter.createdAtTo() == null ? null : Timestamp.valueOf(filter.createdAtTo());
+        boolean isCreatedAtFromPresented = createdAtFromTimestamp != null;
+        boolean isCreatedAtToPresented = createdAtToTimestamp != null;
+        if (isCreatedAtFromPresented) {
+            sql.append("AND ? <= created_at").append("\n\t");
+        }
+        if (isCreatedAtToPresented) {
+            sql.append("AND created_at <= ?").append("\n\t");
+        }
+
+        // updatedAt 범위
+        Timestamp updatedAtFromTimestamp
+                = filter.updatedAtFrom() == null ? null : Timestamp.valueOf(filter.updatedAtFrom());
+        Timestamp updatedAtToTimestamp
+                = filter.updatedAtTo() == null ? null : Timestamp.valueOf(filter.updatedAtTo());
+        boolean isUpdatedAtFromPresented = updatedAtFromTimestamp != null;
+        boolean isUpdatedAtToPresented = updatedAtToTimestamp != null;
+        if (isUpdatedAtFromPresented) {
+            sql.append("AND ? <= updated_at").append("\n\t");
+        }
+        if (isUpdatedAtToPresented) {
+            sql.append("AND updated_at <= ?").append("\n\t");
+        }
+
+        // user_name
+        if (isUserNamePresented) {
+            sql.append("AND u.name LIKE ?").append("\n\t");  // ? 위치에 %% 로 감싸진 userName 삽입
+        }
+
+        // sql 뒷 부분
+        String rearSql = """
+                )
+                SELECT id, title, summary, detail, category_id, created_at, updated_at, user_id, user_name
+                	, (SELECT count(*) FROM search_course_cte) AS total_count
+                FROM search_course_cte
+                WHERE row_num BETWEEN ((? - 1) * ? + 1) AND ((? - 1) * ? + ?)
+                """;
+        sql.append(rearSql);
+
+//        테스트 용
+//        System.out.println("************");
+//        System.out.println(sql.toString());
+
+        // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
+        Connection conn = ConnectionHolder.get();
+
+        // 4. JDBC 를 통해 SQL 문 실행 및 결과 처리
+        try {
+
+            // a. 처리 유형 (3): select- executeQuery -> ResultSet
+            try (PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+                // SQL 와일드 카드에 값 채우기
+                int wildcardSeq = 0;
+                // 키워드
+                if (isKeywordNotNullAndNotBlank) {
+                    pstmt.setString(++wildcardSeq, keyword);
+                    if (!isUserNamePresented) {
+                        pstmt.setString(++wildcardSeq, "%" + keyword + "%");
+                    }
+                }
+                // 카테고리 범위
+                if (isCategorySearchScopePresented) {
+                    pstmt.setArray(++wildcardSeq, conn.createArrayOf("INT", categorySearchScope.toArray()));
+                }
+                // createdAt
+                if (isCreatedAtFromPresented) {
+                    pstmt.setTimestamp(++wildcardSeq, createdAtFromTimestamp);
+                }
+                if (isCreatedAtToPresented) {
+                    pstmt.setTimestamp(++wildcardSeq, createdAtToTimestamp);
+                }
+                // updatedAt
+                if (isUpdatedAtFromPresented) {
+                    pstmt.setTimestamp(++wildcardSeq, updatedAtFromTimestamp);
+                }
+                if (isUpdatedAtToPresented) {
+                    pstmt.setTimestamp(++wildcardSeq, updatedAtToTimestamp);
+                }
+                // userName
+                if (isUserNamePresented) {
+                    pstmt.setString(++wildcardSeq, filter.userName());
+                }
+                // WHERE row_num BETWEEN ((? - 1) * ? + 1) AND ((? - 1) * ? + ?)
+                pstmt.setInt(++wildcardSeq, filter.pageNum());
+                pstmt.setInt(++wildcardSeq, filter.pageSize());
+                pstmt.setInt(++wildcardSeq, filter.pageNum());
+                pstmt.setInt(++wildcardSeq, filter.pageSize());
+                pstmt.setInt(++wildcardSeq, filter.pageSize());
+
+                // SQL 실행
+                List<CourseInfo> courseInfoList = new ArrayList<>();
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        Timestamp createdAtTimestamp = rs.getTimestamp("created_at");
+                        Timestamp updatedAtTimestamp = rs.getTimestamp("updated_at");
+                        courseInfoList.add(new CourseInfo(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("summary"),
+                                rs.getString("detail"),
+                                rs.getInt("category_id"),
+                                createdAtTimestamp == null ? null : createdAtTimestamp.toLocalDateTime(),
+                                updatedAtTimestamp == null ? null : updatedAtTimestamp.toLocalDateTime(),
+                                rs.getLong("user_id"),
+                                rs.getString("user_name"),
+                                rs.getLong("total_count")
+                        ));
+                    }
+                }
+
+                // 결과를 적절하게 처리
+                return courseInfoList;
+            }
+            // b. 예외 처리
+        } catch (SQLException e) {
+            dbUtils.handleSQLException(conn, e);
+        }
+
+        // x. 코드가 의도대로 올바르게 구현된 경우 여기에 도달할 수 없습니다.
+        throw new RuntimeException("CategoryRepositoryImpl.create: 도달 불가능하도록 의도된 지점에 도달했습니다.");
     }
 
     @Override
