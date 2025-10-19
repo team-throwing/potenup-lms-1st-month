@@ -83,31 +83,30 @@ public class CourseRepositoryImpl implements CourseRepository {
 
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-
                         // Course.id
                         id = rs.getInt(1);
-
-                        // RebuildCourse
-                        rebuildCourse = new RebuildCourse(
-                                id,
-                                course.getTitle(),
-                                course.getSummary(),
-                                course.getDetail(),
-                                course.getSubCategoryId(),
-                                course.getUserId(),
-
-                                // 이 시점에서 rebuildSections 리스트는 비어있음
-                                rebuildSections,
-
-                                course.getCreatedAt(),
-                                course.getUpdatedAt()
-                        );
                     }
                 }
 
                 // 섹션 리스트 영속화
                 rebuildSections
                         = sectionRepository.createAllSectionsOfCourse(course.sections(), id);
+
+                // RebuildCourse
+                rebuildCourse = new RebuildCourse(
+                        id,
+                        course.getTitle(),
+                        course.getSummary(),
+                        course.getDetail(),
+                        course.getSubCategoryId(),
+                        course.getUserId(),
+
+                        // 이 시점에서 rebuildSections 리스트는 비어있음
+                        rebuildSections,
+
+                        course.getCreatedAt(),
+                        course.getUpdatedAt()
+                );
 
                 // rebuild 및 반환
                 return Course.rebuild(rebuildCourse);
