@@ -1,157 +1,126 @@
 package com.lms.service;
-import com.lms.dto.CategoryRequestDto; // dto 있다는 가정
-import com.lms.domain.category.Category;
-import com.lms.repository.category.CategoryRepository;
 
+import com.lms.dto.CategoryRequestDto;
+import com.lms.domain.category.Category;
+import com.lms.domain.category.CategoryLevel;
+import com.lms.repository.category.CategoryRepository;
+import com.lms.repository.config.DataSourceFactory;
+import com.lms.repository.config.RepositoryConfig;
+import com.lms.repository.exception.DatabaseException;
+import com.lms.repository.exception.error.DatabaseError;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 public class CategoryService {
 
-    private final CategoryRepository categoryRepository;
-
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
-
-
-    // DTO → 엔티티 변환
+    private final CategoryRepository categoryRepository = RepositoryConfig.categoryRepository();
 
     private Category toEntity(CategoryRequestDto dto) {
         if (dto.getId() == null) {
-            // 새 카테고리 생성 규칙 적용
             return Category.create(dto.getName(), dto.getLevel(), dto.getParentId());
         } else {
-            // 기존 카테고리 rebuild 규칙 적용
             return Category.rebuild(dto.getId(), dto.getName(), dto.getLevel(), dto.getParentId());
         }
     }
 
-
-
-    //  생성
+    // 생성
     public void createCategory(CategoryRequestDto dto) {
-        Connection conn = null; // 기본 연결상태 null
+        Connection conn = null;
         try {
-            conn = DataSource.getConnection(); // 단일 DAO라서 굳이 필요없지만 일단 넣음
-            ConnectionHolder.set(conn);
+            conn = DataSourceFactory.get().getConnection();
             conn.setAutoCommit(false);
+            ConnectionHolder.set(conn);
 
-            if (dto.getName() == null || dto.getName().isEmpty()) {  //dto에서 받아오는 이름이 null이거나 비어있을때)
-                throw new IllegalArgumentException("이름은 필수입니다.");
-            }
-
-            if (dto.getId() != null && categoryRepository.findById(dto.getId()).isPresent()) {
-                throw new IllegalStateException("이미 존재하는 카테고리입니다."); //dto로 받은 id가 null이 아니고 현재 존재할때
-            }
-
-            categoryRepository.create(toEntity(dto)); // DTO를 엔티티로 변환한 뒤, CategoryRepository를 통해 DB에 저장
-
+            categoryRepository.create(toEntity(dto));
             conn.commit();
-        } catch (Exception e) {
-            if (conn != null) try {
-                conn.rollback();
-            } catch (Exception ex) {}
-            throw new RuntimeException(e);  // 예외 발생 시 트랜잭션 롤백 후, RuntimeException으로 재던짐
+        } catch (SQLException | DatabaseException e) {
+            rollbackSafely(conn);
+            throw new DatabaseError("카테고리 생성 중 오류 발생", e);
         } finally {
-            ConnectionHolder.clear();
-            if (conn != null) try {
-                conn.close();  // 커넥션 홀더 초기화 및 DB 연결 종료
-            } catch (Exception ex) {}}
+            clearConnection();
+            closeSafely(conn);
+        }
     }
-    //  수정
 
+    // 수정
     public void updateCategory(CategoryRequestDto dto) {
         Connection conn = null;
         try {
-            conn = DataSource.getConnection();
-            ConnectionHolder.set(conn);
+            conn = DataSourceFactory.get().getConnection();
             conn.setAutoCommit(false);
+            ConnectionHolder.set(conn);
 
-            if (dto.getId() == null) throw new IllegalArgumentException("ID는 필수입니다.");
-
-            // ID로 카테고리를 조회하고, 존재하지 않으면 예외 발생
             Category category = categoryRepository.findById(dto.getId())
-                    .orElseThrow(() -> new IllegalStateException("존재하지 않는 카테고리"));
-
-            // 받은 이름이 NULL이 아니고 빈 문자열이 아닐때
-            if (dto.getName() != null && !dto.getName().isEmpty()) {
-                category.rebuild(dto.getId(),
-                        dto.getName(),
-                        dto.getLevel(),
-                        dto.getParentId());
-            }
+                    .orElseThrow(() -> new NoSuchElementException("존재하지 않는 카테고리입니다."));
+            if (dto.getName() != null) category.rename(dto.getName());
+            if (dto.getLevel() != null) category.updateLevel(dto.getLevel());
+            if (dto.getParentId() != null) category.updateParentId(dto.getParentId());
 
             categoryRepository.update(category);
             conn.commit();
-        } catch (Exception e) {
-            if (conn != null) try {
-                conn.rollback();
-            } catch (Exception ex) {
-            }
-            throw new RuntimeException(e);
+        } catch (SQLException | DatabaseException e) {
+            rollbackSafely(conn);
+            throw new DatabaseError("카테고리 수정 중 오류 발생", e);
         } finally {
-            ConnectionHolder.clear();
-            if (conn != null) try {
-                conn.close();
-            } catch (Exception ex) {
-            }
+            clearConnection();
+            closeSafely(conn);
         }
     }
 
-    //  삭제
-
-    public void deleteCategory(Long id) {
+    // 삭제
+    public void deleteCategory(int id) {
         Connection conn = null;
         try {
-            conn = DataSource.getConnection();
-            ConnectionHolder.set(conn);
+            conn = DataSourceFactory.get().getConnection();
             conn.setAutoCommit(false);
-
-            if (id == null) throw new IllegalArgumentException("ID는 필수");
-
-            if (categoryRepository.findById(id).isEmpty())
-                throw new IllegalStateException("존재하지 않는 카테고리");
+            ConnectionHolder.set(conn);
 
             categoryRepository.delete(id);
             conn.commit();
-        } catch (Exception e) {
-            if (conn != null) try {
-                conn.rollback();
-            } catch (Exception ex) {
-            }
-            throw new RuntimeException(e);
+        } catch (SQLException | DatabaseException e) {
+            rollbackSafely(conn);
+            throw new DatabaseError("카테고리 삭제 중 오류 발생", e);
         } finally {
-            ConnectionHolder.clear();
-            if (conn != null) try {
-                conn.close();
-            } catch (Exception ex) {
-            }
+            clearConnection();
+            closeSafely(conn);
         }
     }
 
- //조회
-    public Category findCategory(Long id) throws SQLException {
-        Connection conn = null;
+    // 조회
+    public Category findCategory(int id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 카테고리입니다."));
+    }
+
+    public List<Category> findAllCategories() {
         try {
-            conn = DataSource.getConnection();
-            ConnectionHolder.set(conn);
-
-            if (id == null) throw new IllegalArgumentException("ID는 필수");
-
-            Category category = categoryRepository.findById(id)
-                    .orElseThrow(() -> new IllegalStateException("존재하지 않는 카테고리"));
-
-            return category;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            ConnectionHolder.clear();
-            if (conn != null) try {
-                conn.close();
-            } catch (Exception ex) {
-            }
+            return categoryRepository.findAll();
+        } catch (DatabaseException e) {
+            throw new DatabaseError("카테고리 전체 조회 중 오류 발생", e);
         }
+    }
+
+    public List<Category> findCategoriesByLevel(CategoryLevel level) {
+        try {
+            return categoryRepository.findAllByCategoryLevel(level);
+        } catch (DatabaseException e) {
+            throw new DatabaseError("카테고리 레벨 조회 중 오류 발생", e);
+        }
+    }
+
+    // 내부 유틸
+    private void rollbackSafely(Connection conn) {
+        if (conn != null) try { conn.rollback(); } catch (SQLException ignored) {}
+    }
+
+    private void clearConnection() {
+        try { ConnectionHolder.clear(); } catch (Exception ignored) {}
+    }
+
+    private void closeSafely(Connection conn) {
+        if (conn != null) try { conn.close(); } catch (SQLException ignored) {}
     }
 }
