@@ -5,10 +5,11 @@ import com.lms.repository.config.DataSourceFactory;
 import com.lms.repository.config.RepositoryConfig;
 import com.lms.repository.exception.DatabaseException;
 import com.lms.repository.exception.error.DatabaseError;
+import com.lms.service.dto.notice.CreateNoticeDto;
+import com.lms.service.dto.notice.UpdateNoticeDto;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 public class NoticeService {
@@ -18,22 +19,21 @@ public class NoticeService {
     // =========================
     // 공지사항 CRUD
     // =========================
-    public Notice createNotice(String body, Integer courseId) {
+    public Notice createNotice(CreateNoticeDto dto) {
         Connection conn = null;
         try {
             conn = DataSourceFactory.get().getConnection();
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Notice notice = Notice.create(body, courseId);
-            noticeRepository.create(notice);
+            Notice notice = noticeRepository.create(dto.toEntity());
             conn.commit();
+
             return notice;
         } catch (SQLException | DatabaseException e) {
             rollbackSafely(conn);
             throw new DatabaseError("공지사항 생성 중 오류 발생", e);
         } finally {
-            clearConnection();
             closeSafely(conn);
         }
     }
@@ -47,27 +47,25 @@ public class NoticeService {
         }
     }
 
-    public void updateNotice(Long id, String newBody) {
+    public void updateNotice(UpdateNoticeDto dto) {
         Connection conn = null;
         try {
             conn = DataSourceFactory.get().getConnection();
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Notice notice = noticeRepository.findById(id)
+            Notice notice = noticeRepository.findById(dto.id())
                     .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
 
             // ✅ 도메인 로직을 통해 내부 상태 변경
-            notice.updateBody(newBody);
+            notice.updateBody(dto.newBody());
 
             noticeRepository.update(notice);
             conn.commit();
-
         } catch (SQLException | DatabaseException e) {
             rollbackSafely(conn);
             throw new DatabaseError("공지사항 수정 중 오류 발생", e);
         } finally {
-            clearConnection();
             closeSafely(conn);
         }
     }
@@ -86,7 +84,6 @@ public class NoticeService {
             rollbackSafely(conn);
             throw new DatabaseError("공지사항 삭제 중 오류 발생", e);
         } finally {
-            clearConnection();
             closeSafely(conn);
         }
     }
@@ -98,11 +95,8 @@ public class NoticeService {
         if (conn != null) try { conn.rollback(); } catch (SQLException ignored) {}
     }
 
-    private void clearConnection() {
-        try { ConnectionHolder.clear(); } catch (Exception ignored) {}
-    }
-
     private void closeSafely(Connection conn) {
-        if (conn != null) try { conn.close(); } catch (SQLException ignored) {}
+        ConnectionHolder.clear();
+        try {if (conn != null) conn.close();} catch (SQLException ignored) {}
     }
 }

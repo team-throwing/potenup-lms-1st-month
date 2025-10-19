@@ -12,14 +12,12 @@ import com.lms.repository.exception.error.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 public class CourseService {
 
     private final CourseRepository courseRepository = RepositoryConfig.courseRepository();
-    private final NoticeRepository noticeRepository = RepositoryConfig.noticeRepository(); // 공지 CRUD용
 
     // =========================
     // 코스 생성
@@ -30,6 +28,9 @@ public class CourseService {
             conn = DataSourceFactory.get().getConnection();
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
+            /*
+            dto -> (spec) -> domain
+             */
 
             Course course = Course.create(spec);
             courseRepository.create(course);
@@ -50,8 +51,7 @@ public class CourseService {
     // =========================
     public Course findCourseById(Integer courseId) {
         try {
-            return courseRepository.findById(courseId)
-                    .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+            return getCourse(courseId);
         } catch (DatabaseException e) {
             throw new DatabaseError("코스 조회 중 오류가 발생했습니다.", e);
         }
@@ -123,8 +123,7 @@ public class CourseService {
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+            Course course = getCourse(courseId);
             course.addSection(sectionSpec);
             courseRepository.update(course);
             conn.commit();
@@ -144,8 +143,7 @@ public class CourseService {
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+            Course course = getCourse(courseId);
             course.deleteSection(sectionId);
             courseRepository.update(course);
             conn.commit();
@@ -165,8 +163,7 @@ public class CourseService {
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+            Course course = getCourse(courseId);
             course.addContent(contentSpec, sectionId);
             courseRepository.update(course);
             conn.commit();
@@ -179,6 +176,11 @@ public class CourseService {
         }
     }
 
+    private Course getCourse(Integer courseId) {
+        return courseRepository.findById(courseId)
+            .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+    }
+
     public void deleteContent(Integer courseId, Integer sectionId, Long contentId) {
         Connection conn = null;
         try {
@@ -186,8 +188,7 @@ public class CourseService {
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+            Course course = getCourse(courseId);
             course.deleteContent(contentId, sectionId);
             courseRepository.update(course);
             conn.commit();
