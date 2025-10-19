@@ -43,9 +43,26 @@ public class CategoryManagement {
 
     }
 
-    public void showCategory(Scanner scanner) {
-        System.out.println("=== 모든 카테고리 목록 ===");
+    public void showCategoryLevelOne(Scanner scanner) {
+        System.out.println("=== 상위 카테고리 목록 ===");
 
+        List<Category> categories = categoryService.findCategoriesByLevel(CategoryLevel.ONE);
+        for (Category category : categories) {
+            System.out.println("ID: " + category.getId() + "Title" + category.getName());
+        }
+    }
+
+    public void showCategoryLevelTwo(Scanner scanner) {
+        System.out.println("=== 하위 카테고리 목록 ===");
+
+        List<Category> categories = categoryService.findCategoriesByLevel(CategoryLevel.ONE);
+        for (Category category : categories) {
+            System.out.println("ID: " + category.getId() + "Title" + category.getName());
+        }
+    }
+
+    public void findAllCategory(Scanner scanner) {
+        System.out.println("=== 모든 카테고리 목록 ===");
         List<Category> categories = categoryService.findAllCategories();
         for (Category category : categories) {
             System.out.println("ID: " + category.getId() + "Title" + category.getName() + "Level" + category.getLevel());
