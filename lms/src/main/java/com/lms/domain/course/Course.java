@@ -64,7 +64,7 @@ public class Course {
             rebuildCourse.title(),
             rebuildCourse.summary(),
             rebuildCourse.detail(),
-            initialSections,
+            new ArrayList<>(initialSections),
             rebuildCourse.subCategoryId(),
             rebuildCourse.userId(),
             rebuildCourse.createdAt(),
@@ -162,7 +162,7 @@ public class Course {
         }
 
         this.sections.stream()
-            .filter(section -> shouldShiftSeq(newSection, section))
+            .filter(section -> shouldShiftSeq(section, newSection))
             .forEach(Section::nextSeq);
     }
 
