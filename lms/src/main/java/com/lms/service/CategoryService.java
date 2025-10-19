@@ -1,5 +1,6 @@
 package com.lms.service;
 
+import com.lms.domain.category.CategoryLevel;
 import com.lms.dto.CategoryRequestDto;
 import com.lms.domain.category.Category;
 import com.lms.repository.category.CategoryRepository;
@@ -57,9 +58,9 @@ public class CategoryService {
             Category category = categoryRepository.findById(dto.getId())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 카테고리입니다."));
 
-            if (dto.getName() != null) category.changeName(dto.getName());
-            if (dto.getLevel() != null) category.changeLevel(dto.getLevel());
-            if (dto.getParentId() != null) category.changeParent(dto.getParentId());
+            if (dto.getName() != null) category.rename(dto.getName());
+            if (dto.getLevel() != null) category.updateLevel(dto.getLevel());
+            if (dto.getParentId() != null) category.updateParentId(dto.getParentId());
 
             categoryRepository.update(category);
             conn.commit();
@@ -109,6 +110,23 @@ public class CategoryService {
             return categoryRepository.findAll();
         } catch (DatabaseException e) {
             throw new DatabaseError("전체 카테고리 조회 중 데이터베이스 오류 발생", e);
+        }
+    }
+
+    // 레벨로 조회
+
+    // ✅ 추가된 기능: 카테고리 레벨로 조회
+    public List<Category> findCategoriesByLevel(CategoryLevel level) {
+        if (level == null)
+            throw new IllegalArgumentException("카테고리 레벨은 null일 수 없습니다.");
+
+        try (Connection conn = DataSourceFactory.get().getConnection()) {
+            conn.setAutoCommit(true); // 단순 조회는 트랜잭션 불필요
+            return categoryRepository.findAllByCategoryLevel(level);
+        } catch (DatabaseException e) {
+            throw new DatabaseError("카테고리 레벨 조회 중 데이터베이스 오류 발생", e);
+        } catch (SQLException e) {
+            throw new DatabaseError("카테고리 레벨 조회 중 SQLException 발생", e);
         }
     }
 }

@@ -12,6 +12,7 @@ import com.lms.repository.exception.error.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -208,13 +209,12 @@ public class CourseService {
     // 공지사항 CRUD
     // =========================
 
-    public Notice createNotice(String body) {
+    public Notice createNotice(String body, Integer courseId) {
         try (Connection conn = DataSourceFactory.get().getConnection()) {
             conn.setAutoCommit(false);
 
-            Notice notice = new Notice(null, body).create(body);
+            Notice notice = Notice.create(body,courseId);
             noticeRepository.create(notice);
-
             conn.commit();
             return notice;
 
@@ -234,14 +234,14 @@ public class CourseService {
         }
     }
 
-    public void updateNotice(Long id, String newBody) {
+    public void updateNotice(Long id, String newBody ,Integer courseId , LocalDateTime createdAt, LocalDateTime updatedAt) {
         try (Connection conn = DataSourceFactory.get().getConnection()) {
             conn.setAutoCommit(false);
 
             Notice notice = noticeRepository.findById(id)
                     .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
 
-            notice = notice.rebuild(id, newBody);
+            notice = notice.rebuild(id, newBody, courseId,createdAt,updatedAt);
             noticeRepository.update(notice);
 
             conn.commit();
