@@ -13,6 +13,7 @@ public record CourseInfo (
         Integer subCategoryId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Long userId
+        Long userId,
+        String userName
 ) {
 }
