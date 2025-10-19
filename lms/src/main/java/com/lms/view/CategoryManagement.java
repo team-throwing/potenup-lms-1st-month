@@ -11,11 +11,7 @@ import java.util.Scanner;
 
 // 이름, 부모 카테고리, 카테고리 레벨
 public class CategoryManagement {
-    private final CategoryService categoryService;
-
-    public CategoryManagement(CategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
+    CategoryService categoryService = new CategoryService();
 
     public void addCategory(Scanner scanner) {
         System.out.println("=== 카테고리 추가 ===");
@@ -47,34 +43,13 @@ public class CategoryManagement {
 
     }
 
-    public void showCategoryLevelOne(Scanner scanner) {
-        System.out.println("=== 상위 카테고리 목록 ===");
+    public void showCategory(Scanner scanner) {
+        System.out.println("=== 모든 카테고리 목록 ===");
 
-//        List<Category> categories = categoryService.findCategoryByLevel(CategoryLevel.ONE);
-//        for (Category category : categories) {
-//            System.out.println("ID: " + category.getId() + "Title" + category.getName());
-//        }
-    }
-
-    public void showCategoryLevelTwo(Scanner scanner) {
-        System.out.println("=== 하위 카테고리 조회 ===");
-        System.out.println("0 입력시 취소");
-        System.out.print("상위 카테고리 선택(id): ");
-
-        int inputId = scanner.nextInt();
-        scanner.nextLine();
-
-        if (inputId != 0) {
-            System.out.println("=== 하위 카테고리 목록 ===");
-//            List<Category> categories = categoryService.findCategoryByParentId(inputId);
-//            for (Category category : categories) {
-//            System.out.println("Id: " + category.getId() + "Title" + category.getName());
-//        }
-        } else {
-            System.out.println("하위 카테고리 조회를 취소했습니다.");
+        List<Category> categories = categoryService.findAllCategories();
+        for (Category category : categories) {
+            System.out.println("ID: " + category.getId() + "Title" + category.getName() + "Level" + category.getLevel());
         }
-
-//
     }
 
     public void updateCategory(Scanner scanner) throws SQLException {
@@ -84,7 +59,7 @@ public class CategoryManagement {
         scanner.nextLine();
 
         // 입력받은 카테고리 정보
-        Category category = categoryService.findCategory(updateCategoryId.longValue());
+        Category category = categoryService.findCategory(updateCategoryId);
         String categoryName = category.getName();
         CategoryLevel categoryLevel = category.getLevel();
         Integer updateParentId = category.getParentId();
@@ -98,12 +73,12 @@ public class CategoryManagement {
             updateCategoryName = categoryName;
         }
 
-        System.out.println("=공란 시 기존 값 유지=");
+        System.out.println("\n=공란 시 기존 값 유지=");
         System.out.print("\n카테고리 레벨 변경(1 or 2): ");
         String updateCategoryLevel = scanner.nextLine();
         scanner.nextLine();
 
-        // 기본으로 기존 값 공란이 아닐 시 변경 값을 덮음
+        // 기본으로 기존 값, 공란이 아닐 시 변경 값을 덮음
         if (!updateCategoryLevel.isBlank()){
             int levelNum = Integer.parseInt(updateCategoryLevel);
 
@@ -114,7 +89,7 @@ public class CategoryManagement {
                     break;
                 case 2:
                     categoryLevel = CategoryLevel.TWO;
-                    System.out.println("=공란 시 기존 값 유지=");
+                    System.out.println("\n=공란 시 기존 값 유지=");
                     System.out.print("소속 카테고리 ID 변경: ");
                     String inputParentId =  scanner.nextLine();
                     if (!inputParentId.isBlank()){
@@ -134,7 +109,7 @@ public class CategoryManagement {
     public void deleteCategory(Scanner scanner) {
         System.out.println("=== 카테고리 삭제 ===");
         System.out.println("삭제할 카테고리 id 입력: ");
-        long deleteCategoryId = scanner.nextInt();
+        int deleteCategoryId = scanner.nextInt();
         scanner.nextLine();
         categoryService.deleteCategory(deleteCategoryId);
     }
