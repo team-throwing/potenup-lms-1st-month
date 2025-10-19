@@ -22,7 +22,7 @@ public class Section {
     private List<Content> contents;
 
     static Section create(CreateSection createSection) throws IllegalArgumentException {
-        List<Content> initialContent = Optional.ofNullable(createSection.contents())
+        List<Content> initialContents = Optional.ofNullable(createSection.contents())
             .orElse(List.of())
             .stream().map(Content::create).toList();
 
@@ -30,7 +30,7 @@ public class Section {
             null,
             createSection.name(),
             createSection.seq(),
-            initialContent
+            new ArrayList<>(initialContents)
         );
     }
 
@@ -58,7 +58,7 @@ public class Section {
         }
 
         this.contents.stream()
-            .filter(content -> shouldShiftSeq(newContent, content))
+            .filter(content -> shouldShiftSeq(content, newContent))
             .forEach(Content::nextSeq);
     }
 
@@ -100,7 +100,7 @@ public class Section {
         AtomicInteger index = new AtomicInteger(NEXT_SEQ);
 
         contents.stream().sorted(Comparator.comparing(Content::getSeq))
-            .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
+            .forEach(content -> content.specifiedSeq(index.getAndIncrement()));
     }
 
     private boolean isLastSequence(Integer seq) {
