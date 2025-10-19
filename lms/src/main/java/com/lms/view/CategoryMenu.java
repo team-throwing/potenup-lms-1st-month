@@ -6,11 +6,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class CategoryMenu {
-    private final CategoryManagement categoryManagement;
-
-    public CategoryMenu(CategoryManagement categoryManagement) {
-        this.categoryManagement = categoryManagement;
-    }
+    CategoryManagement categoryManagement = new CategoryManagement();
 
     public void showCategoryManagementMenu(Scanner scanner) throws SQLException {
         while (true) {
@@ -22,19 +18,15 @@ public class CategoryMenu {
             System.out.println("5. 뒤로가기");
             System.out.print("카테고리 메뉴 선택: ");
 
-            int managerInput = scanner.nextInt();
+            int userInput = scanner.nextInt();
             scanner.nextLine();
 
-            switch (managerInput) {
+            switch (userInput) {
                 case 1:
                     categoryManagement.addCategory(scanner);
                     break;
                 case 2:
-                    // 상위 카테고리 목록 조회
-                    categoryManagement.showCategoryLevelOne(scanner);
-
-                    // 상위 카테고리 id 입력받아 해당 카테고리의 하위 카테고리 목록 조회
-                    categoryManagement.showCategoryLevelTwo(scanner);
+                    categoryManagement.showCategory(scanner);
                     break;
                 case 3:
                     categoryManagement.updateCategory(scanner);
