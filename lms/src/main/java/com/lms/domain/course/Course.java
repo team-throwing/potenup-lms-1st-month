@@ -4,11 +4,14 @@ import com.lms.domain.course.spec.creation.CreateContent;
 import com.lms.domain.course.spec.creation.CreateCourse;
 import com.lms.domain.course.spec.creation.CreateSection;
 import com.lms.domain.course.spec.rebuild.RebuildCourse;
+import com.lms.util.Validation;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,27 +36,8 @@ public class Course {
     @Getter
     private LocalDateTime updatedAt;
 
-    private Course(
-        Integer id, String title, String summary,
-        String detail, List<Section> sections,
-        Integer subCategoryId, Long userId,
-        LocalDateTime createdAt, LocalDateTime updatedAt
-    ) throws IllegalArgumentException {
-        validateTitle(title);
-
-        this.id = id;
-        this.title = title;
-        this.summary = summary;
-        this.detail = detail;
-        this.sections = sections;
-        this.subCategoryId = subCategoryId;
-        this.userId = userId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
     public static Course create(CreateCourse createCourse) throws IllegalArgumentException {
-        List<Section> sections = Optional.of(createCourse.sections())
+        List<Section> sections = Optional.ofNullable(createCourse.sections())
             .orElse(List.of())
             .stream().map(Section::create).toList();
 
@@ -62,7 +46,7 @@ public class Course {
             createCourse.title(),
             createCourse.summary(),
             createCourse.detail(),
-            sections,
+            new ArrayList<>(sections),
             createCourse.subCategoryId(),
             createCourse.userId(),
             LocalDateTime.now(),
@@ -80,7 +64,7 @@ public class Course {
             rebuildCourse.title(),
             rebuildCourse.summary(),
             rebuildCourse.detail(),
-            initialSections,
+            new ArrayList<>(initialSections),
             rebuildCourse.subCategoryId(),
             rebuildCourse.userId(),
             rebuildCourse.createdAt(),
@@ -111,45 +95,31 @@ public class Course {
     }
 
     public void deleteSection(Integer deletedSectionId) {
-        sections.removeIf(section -> section.getSeq().equals(deletedSectionId));
-        balanceSeqAfterSectionDeleted();
-        touched();
-    }
-
-    private void balanceSeqBeforeSectionAdded(Section newSection) {
-        if (isLastSequence(newSection.getSeq())) {
-            newSection.specifiedSeq(getLastSeq());
+        if (sections.removeIf(section -> Objects.equals(section.getId(), deletedSectionId))) {
+            balanceSeqAfterSectionDeleted();
+            touched();
         }
-
-        this.sections.stream()
-            .filter(section -> section.getSeq() >= newSection.getSeq())
-            .forEach(Section::nextSeq);
-    }
-
-    private void balanceSeqAfterSectionDeleted() {
-        AtomicInteger index = new AtomicInteger();
-
-        sections.stream().sorted(Comparator.comparing(Section::getSeq))
-            .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
     }
 
     public void addContent(CreateContent content, Integer sectionId) {
         if (content == null) return;
-
         Content newContent = Content.create(content);
-
-        sections.stream()
-            .filter(section -> section.getId().equals(sectionId)).findFirst()
-            .ifPresent(section -> section.addContent(newContent));
-
+        findSectionOrThrow(sectionId).addContent(newContent);
         touched();
     }
 
     public void deleteContent(Long contentId, Integer sectionId) {
-        sections.stream()
-            .filter(section -> section.getId().equals(sectionId)).findFirst()
-            .ifPresent(section -> section.deleteContent(contentId));
+        findSectionOrThrow(sectionId).deleteContent(contentId);
+        touched();
+    }
 
+    public void renameSection(Integer sectionId, String name) {
+        findSectionOrThrow(sectionId).rename(name);
+        touched();
+    }
+
+    public void renameContent(Long contentId, Integer sectionId, String name) {
+        findSectionOrThrow(sectionId).renameContent(contentId, name);
         touched();
     }
 
@@ -162,12 +132,68 @@ public class Course {
     }
 
     private void validateTitle(String title) throws IllegalArgumentException {
-        Optional.ofNullable(title).orElseThrow(() ->
-            new IllegalArgumentException("강의의 제목이 없습니다. 값을 확인해주세요.")
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("강의의 제목이 없습니다. 값을 확인해주세요.");
+        }
+    }
+
+    private void validateSubCategoryId(Integer subCategoryId) {
+        Optional.ofNullable(subCategoryId).orElseThrow(
+            () -> new IllegalArgumentException("하위 카테고리를 선택해주세요.")
         );
+
+        Validation.requirePositive(subCategoryId, "하위 카테고리 아이디는 음수가 될 수 없습니다.");
     }
 
     private void touched() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    private Section findSectionOrThrow(Integer sectionId) {
+        return sections.stream()
+            .filter(section -> Objects.equals(section.getId(), sectionId))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("섹션을 찾을 수 없습니다. id=" + sectionId));
+    }
+
+    private void balanceSeqBeforeSectionAdded(Section newSection) {
+        if (isLastSequence(newSection.getSeq())) {
+            newSection.specifiedSeq(getLastSeq());
+        }
+
+        this.sections.stream()
+            .filter(section -> shouldShiftSeq(section, newSection))
+            .forEach(Section::nextSeq);
+    }
+
+    private boolean shouldShiftSeq(Section existing, Section incoming) {
+        return existing.getSeq() >= incoming.getSeq();
+    }
+
+    private void balanceSeqAfterSectionDeleted() {
+        AtomicInteger index = new AtomicInteger(NEXT_SEQ);
+
+        sections.stream().sorted(Comparator.comparing(Section::getSeq))
+            .forEach(section -> section.specifiedSeq(index.getAndIncrement()));
+    }
+
+    private Course(
+        Integer id, String title, String summary,
+        String detail, List<Section> sections,
+        Integer subCategoryId, Long userId,
+        LocalDateTime createdAt, LocalDateTime updatedAt
+    ) throws IllegalArgumentException {
+        validateTitle(title);
+        validateSubCategoryId(subCategoryId);
+
+        this.id = id;
+        this.title = title;
+        this.summary = summary;
+        this.detail = detail;
+        this.sections = sections;
+        this.subCategoryId = subCategoryId;
+        this.userId = userId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 }

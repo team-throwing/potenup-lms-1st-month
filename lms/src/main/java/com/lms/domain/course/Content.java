@@ -14,16 +14,6 @@ public class Content {
     private Integer seq;
     private String body;
 
-    private Content(Long id, String name, Integer seq, String body) {
-        validateSeq(seq);
-        validateName(name);
-
-        this.id = id;
-        this.name = name;
-        this.seq = seq;
-        this.body = body;
-    }
-
     static Content create(CreateContent createContent) {
         return new Content(
             null,
@@ -50,17 +40,32 @@ public class Content {
         this.seq =  specifiedSeq;
     }
 
+    void rename(String name) {
+        validateName(name);
+        this.name = name;
+    }
+
     private void validateName(String name) throws IllegalArgumentException {
-        Optional.ofNullable(name).orElseThrow(() ->
-            new IllegalArgumentException("컨텐츠의 이름이 비었습니다.")
-        );
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("컨텐츠의 이름이 비었습니다.");
+        }
     }
 
     private void validateSeq(Integer seq) throws IllegalArgumentException {
-        Validation.requirePositive(seq, "컨텐츠 순서는 음수가 될 수 없습니다.");
-
         Optional.ofNullable(seq).orElseThrow(() ->
             new IllegalArgumentException("컨텐츠 순서 번호가 알맞지 않습니다. 값을 확인해주세요.")
         );
+
+        Validation.requirePositive(seq, "컨텐츠 순서는 음수가 될 수 없습니다.");
+    }
+
+    private Content(Long id, String name, Integer seq, String body) {
+        validateSeq(seq);
+        validateName(name);
+
+        this.id = id;
+        this.name = name;
+        this.seq = seq;
+        this.body = body;
     }
 }
