@@ -44,6 +44,13 @@ public interface CourseRepository {
     List<CourseInfo> searchCourseInfo(CourseInfoSearchFilter filter);
 
     /**
+     * 다음과 같이 수정합니다. <br/>
+     * 1. 강좌 정보를 수정본으로 덮어씁니다. <br/>
+     * 1.1. updated_at 은 기본적으로 수정본의 것으로 수정하나, 수정본의 updated_at 이 null 인 경우 현재 시각으로 설정합니다. <br/>
+     * 1.2. created_at 은 설령 수정본에서 수정했다 하더라도 변경하지 않습니다.<br/>
+     * 2. 원본에는 있으나 수정본에는 없는 섹션 또는 컨텐츠는 삭제합니다. <br/>
+     * 3. 원본에는 없으나 수정본에는 있는 섹션 또는 컨텐츠는 추가합니다. <br/>
+     * 4. 원본에도 있고 수정본에도 있는 섹션 또는 컨텐츠는 덮어씁니다.
      * @param course 강좌
      * @throws IllegalArgumentException course 가 null
      * @throws DatabaseException 복구 가능한 데이터베이스 예외
