@@ -8,6 +8,8 @@ LMS 시스템의 전체 흐름과 구조를 시각화한 다이어그램 모음�
 2. [카테고리 관리 흐름](./02-category-flow.md) - 카테고리 CRUD 작업 프로세스
 3. [강의(Course) 관리 흐름](./03-course-flow.md) - 강의 생성/수정/삭제 프로세스
 4. [도메인 객체 관계도](./04-domain-relationships.md) - 도메인 엔티티 간 관계
+5. [CLI 화면](./05-cli-crud.md)
+   
 
 ## 🏗️ 시스템 개요
 
@@ -26,3 +28,5 @@ LMS 시스템의 전체 흐름과 구조를 시각화한 다이어그램 모음�
 - **Connection Pool**: HikariCP
 - **Transaction Management**: JDBC Manual Transaction
 
+
+![mermaid_picture](./mermaid.png)
