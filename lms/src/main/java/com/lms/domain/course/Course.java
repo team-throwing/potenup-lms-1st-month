@@ -4,6 +4,7 @@ import com.lms.domain.course.spec.creation.CreateContent;
 import com.lms.domain.course.spec.creation.CreateCourse;
 import com.lms.domain.course.spec.creation.CreateSection;
 import com.lms.domain.course.spec.rebuild.RebuildCourse;
+import com.lms.util.Validation;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -136,6 +137,14 @@ public class Course {
         }
     }
 
+    private void validateSubCategoryId(Integer subCategoryId) {
+        Optional.ofNullable(subCategoryId).orElseThrow(
+            () -> new IllegalArgumentException("하위 카테고리를 선택해주세요.")
+        );
+
+        Validation.requirePositive(subCategoryId, "하위 카테고리 아이디는 음수가 될 수 없습니다.");
+    }
+
     private void touched() {
         this.updatedAt = LocalDateTime.now();
     }
@@ -175,6 +184,7 @@ public class Course {
         LocalDateTime createdAt, LocalDateTime updatedAt
     ) throws IllegalArgumentException {
         validateTitle(title);
+        validateSubCategoryId(subCategoryId);
 
         this.id = id;
         this.title = title;
