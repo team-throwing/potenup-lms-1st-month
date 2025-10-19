@@ -20,7 +20,7 @@ public class SearchMenu {
 
             switch (userInput) {
                 case 1:
-                    categoryManagement.showCategory(scanner);   // 모든 카테고리 조회
+                    categoryManagement.showCategoryLevelOne(scanner);   // 상위 카테고리 조회
                     courseMenu.searchCourseByCategory(scanner); // 카테고리 id 입력 후 해당 카테고리 코스 추가 및 코스 상세 메뉴 진입
                     break;
                 case 2:
