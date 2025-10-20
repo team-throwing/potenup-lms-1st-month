@@ -111,6 +111,15 @@ public class CategoryService {
         }
     }
 
+    public List<Category> findChildrenByParentId(int id) {
+        try {
+            return categoryRepository.findChildrenByParentId(id);
+        } catch (DatabaseException e) {
+            throw new DatabaseError("부모 카테고리로 하위카테고리 조회 중 오류 발생", e);
+        }
+    }
+
+
     // 내부 유틸
     private void rollbackSafely(Connection conn) {
         if (conn != null) try { conn.rollback(); } catch (SQLException ignored) {}
