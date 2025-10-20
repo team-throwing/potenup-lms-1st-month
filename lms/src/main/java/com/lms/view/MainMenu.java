@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class MainMenu {
+    private final SearchMenu searchMenu = new SearchMenu();
+    private final CategoryMenu categoryMenu = new CategoryMenu();
 
     public void showMainMenu(Scanner scanner) throws SQLException {
         System.out.println("\nTeam Janban 1st_lms_project");
@@ -20,18 +22,12 @@ public class MainMenu {
             scanner.nextLine();
 
             switch (userInput) {
-                case 1:
-                    // 조회 메뉴 진입
-                    new SearchMenu().showSearchMenu(scanner);
-                    break;
-                case 2:
-                    // 카테고리 관리 메뉴 진입
-                    new CategoryMenu().showCategoryManagementMenu(scanner);
-                    break;
-                case 3:
-                    System.exit(0);
-                default:
-                    System.out.println("잘못된 선택입니다. 다시 선택하세요");
+                case 1 -> searchMenu.showSearchMenu(scanner);
+                case 2 -> categoryMenu.showCategoryManagementMenu(scanner);
+                case 3 -> {
+                    return;
+                }
+                default -> System.out.println("잘못된 선택입니다. 다시 선택하세요");
             }
         }
     }

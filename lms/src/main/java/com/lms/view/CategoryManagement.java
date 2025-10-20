@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 // 이름, 부모 카테고리, 카테고리 레벨
 public class CategoryManagement {
-    CategoryService categoryService = new CategoryService();
+    private final CategoryService categoryService = new CategoryService();
 
     public void addCategory(Scanner scanner) {
         System.out.println("=== 카테고리 추가 ===");
@@ -25,16 +25,13 @@ public class CategoryManagement {
         Integer parentId = null;
 
         switch (addCategoryLevel) {
-            case 1:
-                categoryLevel = CategoryLevel.ONE;
-                break;
-            case 2:
+            case 1 -> categoryLevel = CategoryLevel.ONE;
+            case 2 -> {
                 categoryLevel = CategoryLevel.TWO;
                 System.out.print("상위 카테고리 ID 입력: ");
                 parentId = scanner.nextInt();
-                break;
-            default:
-                System.out.println("잘못된 입력입니다. 1 또는 2를 입력하세요.");
+            }
+            default -> System.out.println("잘못된 입력입니다. 1 또는 2를 입력하세요.");
         }
 
 
@@ -53,9 +50,13 @@ public class CategoryManagement {
     }
 
     public void showCategoryLevelTwo(Scanner scanner) {
+        System.out.print("조회할 상위 카테고리 id 입력: ");
+        int inputParentId =  scanner.nextInt();
+        scanner.nextLine();
+
         System.out.println("=== 하위 카테고리 목록 ===");
 
-        List<Category> categories = categoryService.findCategoriesByLevel(CategoryLevel.ONE);
+        List<Category> categories = categoryService.findChildrenByParentId(inputParentId);
         for (Category category : categories) {
             System.out.println("ID: " + category.getId() + "Title" + category.getName());
         }

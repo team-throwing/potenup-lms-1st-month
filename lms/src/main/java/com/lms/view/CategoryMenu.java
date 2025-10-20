@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class CategoryMenu {
-    CategoryManagement categoryManagement = new CategoryManagement();
+    private final CategoryManagement categoryManagement = new CategoryManagement();
 
     public void showCategoryManagementMenu(Scanner scanner) throws SQLException {
         while (true) {
@@ -22,19 +22,12 @@ public class CategoryMenu {
             scanner.nextLine();
 
             switch (userInput) {
-                case 1:
-                    categoryManagement.addCategory(scanner);
-                    break;
-                case 2:
-                    categoryManagement.findAllCategory(scanner);
-                    break;
-                case 3:
-                    categoryManagement.updateCategory(scanner);
-                    break;
-                case 4:
-                    categoryManagement.deleteCategory(scanner);
-                case 5:
-                    return;
+                case 1 -> categoryManagement.addCategory(scanner);
+                case 2 -> categoryManagement.findAllCategory(scanner);
+                case 3 -> categoryManagement.updateCategory(scanner);
+                case 4 -> categoryManagement.deleteCategory(scanner);
+                case 5 -> {return;}
+                default -> System.out.println("잘못된 입력입니다.");
             }
         }
     }

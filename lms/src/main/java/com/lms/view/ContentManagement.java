@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 // 이름, 콘텐츠 순서, 소속 섹션id, 콘텐츠 개요(본문)
 public class ContentManagement {
-    CourseService courseService  = new CourseService();
+    private final CourseService courseService  = new CourseService();
 
     public void addContent(Scanner scanner, int courseId, int sectionId) {
         System.out.println("=== 섹션에 콘텐츠 추가 ===");
@@ -38,6 +38,8 @@ public class ContentManagement {
             System.out.println("콘텐츠 추가 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
+    public void updateContent(Scanner scanner, int courseId, int sectionId) {}
 
     public void deleteContent(Scanner scanner, Integer courseId, Integer sectionId) {
         System.out.println("=== 섹션 내 콘텐츠 삭제 ===");

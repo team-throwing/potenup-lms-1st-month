@@ -4,9 +4,9 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class SearchMenu {
-    CategoryManagement categoryManagement = new CategoryManagement();
-    CourseManagement courseManagement = new CourseManagement();
-    CourseMenu courseMenu = new CourseMenu();
+    private final CategoryManagement categoryManagement = new CategoryManagement();
+    private final CourseManagement courseManagement = new CourseManagement();
+    private final CourseMenu courseMenu = new CourseMenu();
 
     public void showSearchMenu(Scanner scanner) throws SQLException {
 
@@ -14,21 +14,26 @@ public class SearchMenu {
             System.out.println("1. 카테고리 조회");
             System.out.println("2. 강좌 검색");
             System.out.println("3. 뒤로가기");
+            System.out.print("메뉴 선택: ");
 
             int userInput = scanner.nextInt();
             scanner.nextLine();
 
             switch (userInput) {
-                case 1:
-                    categoryManagement.showCategoryLevelOne(scanner);   // 상위 카테고리 조회
-                    courseMenu.searchCourseByCategory(scanner); // 카테고리 id 입력 후 해당 카테고리 코스 추가 및 코스 상세 메뉴 진입
-                    break;
-                case 2:
-                    courseManagement.searchCourseWithFilter(scanner);    // 강좌 검색 후 관련 강좌 목록 조회
-                    courseManagement.selectCourse(scanner);
-                    break;
-                case 3:
+                case 1 -> {
+                    categoryManagement.showCategoryLevelOne(scanner);
+                    categoryManagement.showCategoryLevelTwo(scanner);
+                    courseMenu.searchCourseByCategory(scanner);
+                }
+                case 2 -> {
+                    courseManagement.searchCourseWithFilter(scanner);
+                    int inputCourseId = courseManagement.selectCourse(scanner);
+                    courseMenu.showCourseMenu(scanner, inputCourseId);
+                }
+                case 3 -> {
                     return;
+                }
+                default -> System.out.println("잘못된 입력입니다.");
             }
         }
     }

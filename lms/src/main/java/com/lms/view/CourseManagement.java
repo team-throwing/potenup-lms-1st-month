@@ -23,20 +23,15 @@ import java.util.Scanner;
 // 이름, 소속 카테고리, 개요, detail, 작성자id, 생성 일시, 수정 일시
 // 섹션 설정 (이름, 섹션 순서, 소속 강의id)
 public class CourseManagement {
-    CourseService courseService = new CourseService();
-    CourseMenu courseMenu = new CourseMenu();
+    private final CourseService courseService = new CourseService();
 
-    public void showCourseByCategoryId(Scanner scanner) {
-        System.out.println("=== 코스 목록 조회 ===");
-        System.out.print("카테고리 id 입력: ");
-        int inputCategoryId = scanner.nextInt();
-        scanner.nextLine();
-
+    public void showCourseByCategoryId(Scanner scanner, int categoryId) throws SQLException {
         System.out.println("\n=== 코스 목록 ===");
-        Course course = courseService.findCourseById(inputCategoryId);
+        Course course = courseService.findCourseById(categoryId);  // 카테고리 id로 카테고리 목록 조회
         System.out.println("ID: " + course.getId() + "Title: " + course.getTitle());
-
     }
+
+
 
     public void searchCourseWithFilter(Scanner scanner) {
         System.out.println("=== 코스 검색 ===");
@@ -132,12 +127,12 @@ public class CourseManagement {
     }
 
 
-    public void selectCourse(Scanner scanner) throws SQLException {
+    public int selectCourse(Scanner scanner) throws SQLException {
         System.out.print("상세 메뉴로 들어갈 코스 ID 입력: ");
         int courseId = scanner.nextInt();
         scanner.nextLine();
 
-        courseMenu.showCourseMenu(scanner, courseId);
+        return courseId;
     }
 
     public void showCourseDetail(Scanner scanner, int courseId) {
