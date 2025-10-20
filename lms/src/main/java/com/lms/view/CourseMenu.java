@@ -7,7 +7,6 @@ public class CourseMenu {
     private final CourseManagement courseManagement = new CourseManagement();
     private final SectionMenu sectionMenu = new SectionMenu();
     private final NoticeMenu noticeMenu = new NoticeMenu();
-    private final CourseMenu courseMenu = new CourseMenu();
 
     public void showCourseMenu(Scanner scanner, int courseId) throws SQLException {
 
@@ -56,7 +55,7 @@ public class CourseMenu {
                 case 2 -> courseManagement.addCourse(scanner, categoryId);
                 case 3 -> {
                     int inputCourseId = courseManagement.selectCourse(scanner);
-                    courseMenu.showCourseMenu(scanner, inputCourseId);
+                    showCourseMenu(scanner, inputCourseId);
                 }
                 case 4 -> {
                     return;

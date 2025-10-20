@@ -3,7 +3,7 @@ package com.lms.view;
 import java.util.Scanner;
 
 public class SectionMenu {
-    private final SectionManageMent sectionManageMent = new SectionManageMent();
+    private final SectionManagement sectionManageMent = new SectionManagement();
     private final ContentMenu contentMenu = new ContentMenu();
 
     public void showSectionMenu(Scanner scanner, int courseId) {

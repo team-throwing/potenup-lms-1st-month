@@ -91,24 +91,83 @@ public class CategoryService {
 
     // 조회
     public Category findCategory(int id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 카테고리입니다."));
+
+        Connection conn = null;
+
+        try {
+            conn = DataSourceFactory.get().getConnection();
+            ConnectionHolder.set(conn);
+
+            Category found = categoryRepository.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("존재하지 않는 카테고리입니다."));
+
+            return found;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
     }
 
     public List<Category> findAllCategories() {
+        Connection conn = null;
         try {
+
+            conn = DataSourceFactory.get().getConnection();
+            ConnectionHolder.set(conn);
+
             return categoryRepository.findAll();
         } catch (DatabaseException e) {
             throw new DatabaseError("카테고리 전체 조회 중 오류 발생", e);
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+            }
         }
+
+        return null;
     }
 
     public List<Category> findCategoriesByLevel(CategoryLevel level) {
+
+        Connection conn = null;
+
         try {
+
+            conn = DataSourceFactory.get().getConnection();
+            ConnectionHolder.set(conn);
+
             return categoryRepository.findAllByCategoryLevel(level);
         } catch (DatabaseException e) {
             throw new DatabaseError("카테고리 레벨 조회 중 오류 발생", e);
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+            }
         }
+
+        return null;
     }
 
     public List<Category> findChildrenByParentId(int id) {
