@@ -9,6 +9,7 @@ import com.lms.repository.course.dto.CourseInfo;
 import com.lms.repository.course.dto.CourseInfoSearchFilter;
 import com.lms.repository.exception.*;
 import com.lms.repository.exception.error.*;
+import com.lms.repository.notice.NoticeRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;

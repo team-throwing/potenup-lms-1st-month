@@ -69,7 +69,7 @@ public class RepositoryConfig {
 
     public static NoticeRepository noticeRepository() {
         if (noticeRepository == null) {
-            noticeRepository = new NoticeRepositoryImpl();
+            noticeRepository = new NoticeRepositoryImpl(dbUtils());
         }
 
         return noticeRepository;
