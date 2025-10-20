@@ -17,6 +17,12 @@ public class CategoryRequestDto {
         this.parentId = parentId;
     }
 
+    public CategoryRequestDto(String name, CategoryLevel level, Integer parentId) {
+        this.name = name;
+        this.level = level;
+        this.parentId = parentId;
+    }
+
     // getter / setter
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
