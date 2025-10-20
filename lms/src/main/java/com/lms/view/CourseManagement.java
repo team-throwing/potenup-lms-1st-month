@@ -15,6 +15,7 @@ import com.lms.service.CourseService;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -58,10 +59,10 @@ public class CourseManagement {
         }
 
         // 3. 날짜 필터 (옵션)
-        LocalDate createdFrom = inputDate(scanner, "생성일 (부터, yyyy-MM-dd, 생략 가능): ");
-        LocalDate createdTo = inputDate(scanner, "생성일 (까지, yyyy-MM-dd, 생략 가능): ");
-        LocalDate updatedFrom = inputDate(scanner, "수정일 (부터, yyyy-MM-dd, 생략 가능): ");
-        LocalDate updatedTo = inputDate(scanner, "수정일 (까지, yyyy-MM-dd, 생략 가능): ");
+        LocalDateTime createdFrom = inputDate(scanner, "생성일 (부터, yyyy-MM-dd, 생략 가능): ");
+        LocalDateTime createdTo = inputDate(scanner, "생성일 (까지, yyyy-MM-dd, 생략 가능): ");
+        LocalDateTime updatedFrom = inputDate(scanner, "수정일 (부터, yyyy-MM-dd, 생략 가능): ");
+        LocalDateTime updatedTo = inputDate(scanner, "수정일 (까지, yyyy-MM-dd, 생략 가능): ");
 
         // 4. 작성자 이름 필터
         System.out.print("작성자 이름 (없으면 Enter): ");
@@ -113,13 +114,13 @@ public class CourseManagement {
     }
 
     // 날짜 입력을 처리하는 유틸 메서드
-    private LocalDate inputDate(Scanner scanner, String prompt) {
+    private LocalDateTime inputDate(Scanner scanner, String prompt) {
         System.out.print(prompt);
         String input = scanner.nextLine();
         if (input.isBlank()) return null;
 
         try {
-            return LocalDate.parse(input);
+            return LocalDateTime.parse(input);
         } catch (Exception e) {
             System.out.println("날짜 형식이 올바르지 않습니다. 생략 처리됩니다.");
             return null;

@@ -190,15 +190,19 @@ class CourseRepositoryTest {
 
             // 앞서 create 테스트 메서드에서 생성했던
             // 3번째 섹션의 2번째 컨텐츠 제거
-            found.deleteContent(10033L, 1048);
+            List<Section> sections = found.sections();
+            int thirdSectionId = sections.get(2).getId();
+            long secondContentIdOfThirdSection = sections.get(2).getContents().get(1).getId();
+            found.deleteContent(secondContentIdOfThirdSection, thirdSectionId);
             // 2번째 섹션에 컨텐츠 추가
+            int secondSectionId = sections.get(1).getId();
             found.addContent(
                     new CreateContent(
                             "컨텐츠 2-4",
                             4,
                             "......"
                     ),
-                    1047
+                    secondSectionId
             );
 
             // 업데이트
