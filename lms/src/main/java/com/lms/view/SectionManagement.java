@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class SectionManageMent {
+public class SectionManagement {
     CourseService courseService = new CourseService();
 
     public void addSection(Scanner scanner, int courseId) {

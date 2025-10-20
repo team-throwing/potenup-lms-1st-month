@@ -50,12 +50,24 @@ public class CourseService {
     // 코스 조회 (단품)
     // =========================
     public Course findCourseById(Integer courseId) {
+
+        Connection conn;
+
         try {
+
+            conn = DataSourceFactory.get().getConnection();
+            ConnectionHolder.set(conn);
+
             return courseRepository.findById(courseId)
                     .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
+
         } catch (DatabaseException e) {
             throw new DatabaseError("코스 조회 중 오류가 발생했습니다.", e);
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
         }
+
+        return null;
     }
 
     // =========================
@@ -65,11 +77,22 @@ public class CourseService {
         if (filter == null)
             throw new IllegalArgumentException("검색 필터가 null일 수 없습니다.");
 
+        Connection conn;
+
         try {
+
+            conn = DataSourceFactory.get().getConnection();
+            ConnectionHolder.set(conn);
+
             return courseRepository.searchCourseInfo(filter);
+
         } catch (DatabaseException e) {
             throw new DatabaseError("코스 검색 중 데이터베이스 오류 발생", e);
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
         }
+
+        return null;
     }
 
     // =========================

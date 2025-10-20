@@ -176,6 +176,10 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 List<Category> found = new ArrayList<>();
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
+                        Integer parentId = rs.getInt("parent_id");
+                        if (parentId == 0) {
+                            parentId = null;
+                        }
                         Category aRecordFound = Category.rebuild(
                                 // id
                                 rs.getInt("id"),
@@ -185,7 +189,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                                 rs.getString("level").equals("ONE")
                                         ? CategoryLevel.ONE : CategoryLevel.TWO,
                                 // parent id
-                                rs.getInt("parent_id")
+                                parentId
                         );
 
                         found.add(aRecordFound);

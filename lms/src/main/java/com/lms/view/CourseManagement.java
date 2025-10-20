@@ -1,7 +1,9 @@
 package com.lms.view;
 
 import com.lms.domain.category.Category;
+import com.lms.domain.course.Content;
 import com.lms.domain.course.Course;
+import com.lms.domain.course.Section;
 import com.lms.domain.course.spec.creation.CreateContent;
 import com.lms.domain.course.spec.creation.CreateCourse;
 import com.lms.domain.course.spec.creation.CreateSection;
@@ -109,7 +111,7 @@ public class CourseManagement {
                 }
             }
         } catch (Exception e) {
-            System.out.println("검색 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -140,8 +142,7 @@ public class CourseManagement {
         Course course = courseService.findCourseById(courseId); // 코스 정보 조회
 
         System.out.println("=== " + course.getTitle() + " 코스 조회 ===");
-        System.out.println(course.getId());
-        System.out.println(course.getDetail());
+        printCourse(course);
     }
 
 
@@ -305,5 +306,54 @@ public class CourseManagement {
         } catch (Exception e) {
             System.out.println("코스 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    private static void printCourse(Course course) {
+        StringBuilder toBePrinted = new StringBuilder(
+                "Course={" +
+                        "\n\tid=" + course.getId() +
+                        "\n\ttitle='" + course.getTitle() + '\'' +
+                        "\n\tsummary='" + course.getTitle() + '\'' +
+                        "\n\tdetail='" + course.getDetail() + '\'' +
+                        "\n\tsubCategoryId=" + course.getSubCategoryId() +
+                        "\n\tuserId=" + course.getUserId() +
+                        "\n\tcreatedAt=" + course.getCreatedAt() +
+                        "\n\tupdatedAt=" + course.getUpdatedAt() +
+                        "\n\tsections={"
+        );
+
+        for (Section section : course.sections()) {
+            toBePrinted.append(
+                    "\n\t\t{" +
+                            "\n\t\t\tid=" + section.getId() +
+                            "\n\t\t\tname='" + section.getName() + '\'' +
+                            "\n\t\t\tseq=" + section.getSeq() +
+                            "\n\t\t\tcontents={"
+            );
+
+            for (Content content : section.getContents()) {
+                toBePrinted.append(
+                        "\n\t\t\t\t{" +
+                                "\n\t\t\t\t\tid=" + content.getId() +
+                                "\n\t\t\t\t\tname='" + content.getName() + '\'' +
+                                "\n\t\t\t\t\tseq=" + content.getSeq() +
+                                "\n\t\t\t\t\tbody='" + content.getBody() + '\'' +
+                                "\n\t\t\t\t},"
+                );
+            }
+            toBePrinted.append(
+                    "\n\t\t\t},");
+
+            toBePrinted.append(
+                    "\n\t\t},");
+        }
+
+        toBePrinted.append(
+                "\n\t}");
+
+        toBePrinted.append(
+                "\n}");
+
+        System.out.println(toBePrinted);
     }
 }
