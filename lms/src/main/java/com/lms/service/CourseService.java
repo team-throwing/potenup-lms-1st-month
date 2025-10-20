@@ -10,6 +10,8 @@ import com.lms.repository.course.dto.CourseInfoSearchFilter;
 import com.lms.repository.exception.*;
 import com.lms.repository.exception.error.*;
 import com.lms.repository.notice.NoticeRepository;
+import com.lms.service.ServiceConfig;
+import com.lms.domain.asset.service.AssetService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,6 +23,7 @@ public class CourseService {
 
     private final CourseRepository courseRepository = RepositoryConfig.courseRepository();
     private final NoticeRepository noticeRepository = RepositoryConfig.noticeRepository(); // 공지 CRUD용
+    private final AssetService assetService = ServiceConfig.assetService();
 
     // =========================
     // 코스 생성
@@ -193,8 +196,8 @@ public class CourseService {
                     .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
             course.addContent(contentSpec, sectionId);
 
-            // Asset 추가
-            
+            // Asset 추가(했어야하는데 자료가 없음)
+            // assetService.submitUploadFileList(null);
             courseRepository.update(course);
             conn.commit();
         } catch (SQLException | DatabaseException e) {
