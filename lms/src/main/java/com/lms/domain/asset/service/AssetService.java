@@ -102,7 +102,7 @@ public class AssetService implements AutoCloseable {
      * @param contentId를 조회할 Content 의 Id
      * @return Content에 연결된 모든 Asset 리스트
      */
-    public List<Asset> getAssetStatus(Integer contentId) throws IllegalArgumentException {
+    public List<Asset> getAssetStatus(Long contentId) throws IllegalArgumentException {
         Optional.ofNullable(contentId).orElseThrow(() -> 
             new IllegalArgumentException("조회하고자 하는 컨텐츠 값이 비어있습니다.")
         );
@@ -127,7 +127,7 @@ public class AssetService implements AutoCloseable {
      * @param contentId
      * @throw IllegalStateException Asset이 재시도 횟수 초과로 불가능한 경우
      */
-    public void reUpload(Integer contentId) {
+    public void reUpload(Long contentId) {
         // TODO: Repository에서 해당 contentId 를 가진 Asset 조회
         // assetRepository.findByContentID(contentId)
         List<AssetServiceRebuild> assetDTOList = null;

@@ -4,5 +4,5 @@ public record CreateAsset(
     String mimeType,
     String path,
     String originalFilename,
-    Integer contentId
+    Long contentId
 ) {}

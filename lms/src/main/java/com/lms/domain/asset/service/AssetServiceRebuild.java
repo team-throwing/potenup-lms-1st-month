@@ -9,12 +9,12 @@ import com.lms.domain.asset.rebuild.RebuildAsset;
  * {@link #toRebuildAsset()} 의 사용을 통해 AssetService에서 사용
  */
 public record AssetServiceRebuild(
-    Integer id,
+    Long id,
     String mimeType,
     String path,
     String originalFilename,
     String convertedFilename,
-    Integer contentId,
+    Long contentId,
     UploadStatus status
 ) {
     public RebuildAsset toRebuildAsset() {
