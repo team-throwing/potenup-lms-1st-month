@@ -11,7 +11,7 @@ public record AssetServiceCreate(
     String mimeType,
     String path,
     String originalFilename,
-    Integer contentId
+    Long contentId
 ) {
     public CreateAsset toCreateAsset() {
         return new CreateAsset(

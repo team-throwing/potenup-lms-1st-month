@@ -1,6 +1,5 @@
 package com.lms.domain.asset;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import com.lms.domain.asset.creation.CreateAsset;
@@ -34,21 +33,21 @@ import lombok.Getter;
  */
 @Getter
 public class Asset {
-    private Integer id;
+    private Long id;
     private final String mimeType;
     private final String path;
     private final String originalFilename;
     private final String convertedFilename;
-    private final Integer contentId;
+    private final Long contentId;
     private UploadStatus status; // 비동기 처리 상태 추적
     private int retryCount = 0;
 
     private static final int MAX_RETRY_COUNT = 5;
 
     private Asset(
-        Integer id, String mimeType, String path,
+        Long id, String mimeType, String path,
         String originalFilename, String convertedFilename, 
-        Integer contentId, UploadStatus status
+        Long contentId, UploadStatus status
     ) {
         
         this.id = id;
@@ -67,7 +66,7 @@ public class Asset {
      */
     public static Asset create(CreateAsset createAsset) {
         String originalFilename = createAsset.originalFilename();
-        UUID uuid = UUID.nameUUIDFromBytes(originalFilename.getBytes(StandardCharsets.UTF_8));
+        UUID uuid = UUID.randomUUID();
         String convertedFilename = uuid.toString();
         
         return new Asset(
