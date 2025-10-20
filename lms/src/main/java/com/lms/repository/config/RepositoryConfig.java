@@ -6,6 +6,8 @@ import com.lms.repository.course.*;
 import com.lms.repository.exception.converter.DbDialectExceptionConverter;
 import com.lms.repository.exception.converter.DbUtils;
 import com.lms.repository.exception.converter.MysqlExceptionConverter;
+import com.lms.repository.notice.NoticeRepository;
+import com.lms.repository.notice.NoticeRepositoryImpl;
 
 public class RepositoryConfig {
 
@@ -15,6 +17,7 @@ public class RepositoryConfig {
     private static CourseRepository courseRepository;
     private static SectionRepository sectionRepository;
     private static ContentRepository contentRepository;
+    private static NoticeRepository noticeRepository;
 
     public static DbDialectExceptionConverter dbDialectExceptionConverter() {
         if (dbDialectExceptionConverter == null) {
@@ -62,5 +65,13 @@ public class RepositoryConfig {
         }
 
         return contentRepository;
+    }
+
+    public static NoticeRepository noticeRepository() {
+        if (noticeRepository == null) {
+            noticeRepository = new NoticeRepositoryImpl();
+        }
+
+        return noticeRepository;
     }
 }

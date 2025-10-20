@@ -3,6 +3,6 @@ package com.lms.repository.notice;
 import com.lms.domain.course.Notice;
 import com.lms.repository.exception.DatabaseException;
 
-public class NoticeRepositoryImpl {
+public class NoticeRepositoryImpl implements NoticeRepository {
     Notice createNotice(Notice notice) throws DatabaseException;
 }
