@@ -1,6 +1,7 @@
 package com.lms.repository.asset;
 
 import com.lms.domain.asset.Asset;
+import com.lms.domain.asset.UploadStatus;
 import com.lms.domain.asset.rebuild.RebuildAsset;
 import com.lms.repository.exception.DatabaseException;
 import com.lms.repository.exception.ModificationTargetNotFoundException;
@@ -30,8 +31,8 @@ public class AssetRepositoryImpl implements AssetRepository {
         // 2. SQL 작성
         String sql = """
                 INSERT INTO asset
-                (mime_type, path, original_filename, converted_filename, content_id)
-                VALUES (?, ?, ?, ?, ?)
+                (mime_type, path, original_filename, converted_filename, content_id, upload_status)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
         // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
@@ -49,6 +50,7 @@ public class AssetRepositoryImpl implements AssetRepository {
                 pstmt.setString(3, asset.getOriginalFilename());
                 pstmt.setString(4, asset.getConvertedFilename());
                 pstmt.setLong(5, asset.getContentId());
+                pstmt.setString(6, asset.getStatus().forDatabase());
 
                 // SQL 실행
                 boolean isNotCompleted = pstmt.executeUpdate() <= 0;
@@ -95,8 +97,8 @@ public class AssetRepositoryImpl implements AssetRepository {
 
         // 2. SQL 작성
         String sql = """
-                INSERT INTO asset(mime_type, path, original_filename, converted_filename, content_id)
-                VALUES(?, ?, ?, ?, ?)
+                INSERT INTO asset(mime_type, path, original_filename, converted_filename, content_id, upload_status)
+                VALUES(?, ?, ?, ?, ?, ?)
                 """;
 
         // 3. Connection 객체 획득(Connection 객체는 여기서 닫으면 안 됨!)
@@ -115,6 +117,7 @@ public class AssetRepositoryImpl implements AssetRepository {
                     pstmt.setString(3, asset.getOriginalFilename());
                     pstmt.setString(4, asset.getConvertedFilename());
                     pstmt.setLong(5, asset.getContentId());
+                    pstmt.setString(6, asset.getStatus().forDatabase());
                     pstmt.addBatch();
                 }
 
@@ -133,7 +136,7 @@ public class AssetRepositoryImpl implements AssetRepository {
                 for (int i = 0; i < assets.size(); i++) {
                     Asset curAsset = assets.get(i);
                     ret.add(Asset.rebuild(new RebuildAsset(
-                            assetIds.add(assetIds.get(i)),
+                            assetIds.get(i),
                             curAsset.getMimeType(),
                             curAsset.getPath(),
                             curAsset.getOriginalFilename(),
@@ -191,7 +194,8 @@ public class AssetRepositoryImpl implements AssetRepository {
                                 rs.getString("path"),
                                 rs.getString("original_filename"),
                                 rs.getString("converted_filename"),
-                                rs.getLong("content_id")
+                                rs.getLong("content_id"),
+                                UploadStatus.valueOf(rs.getString("upload_status"))
                         )));
                     }
                 }
@@ -224,7 +228,8 @@ public class AssetRepositoryImpl implements AssetRepository {
                     path=?,
                     original_filename=?,
                     converted_filename=?,
-                    content_id=?
+                    content_id=?,
+                    upload_status=?
                 WHERE id=?
                 """;
 
@@ -243,6 +248,7 @@ public class AssetRepositoryImpl implements AssetRepository {
                 pstmt.setString(3, asset.getOriginalFilename());
                 pstmt.setString(4, asset.getConvertedFilename());
                 pstmt.setLong(5, asset.getContentId());
+                pstmt.setString(6, asset.getStatus().forDatabase());
 
                 // SQL 실행
                 boolean isNotCompleted = pstmt.executeUpdate() <= 0;
@@ -277,7 +283,7 @@ public class AssetRepositoryImpl implements AssetRepository {
         try {
 
             // a. 처리 유형 (2): update | delete - executeUpdate -> affectedRowCount (no ResultSet)
-            try (PreparedStatement pstmt = conn.prepareStatement(sql /*, Statement.RETURN_GENERATED_KEYS*/)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
                 // SQL 와일드 카드에 값 채우기
                 pstmt.setLong(1, id);
