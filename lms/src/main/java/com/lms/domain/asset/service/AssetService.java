@@ -3,7 +3,9 @@ package com.lms.domain.asset.service;
 import com.lms.domain.asset.Asset;
 import com.lms.domain.asset.UploadStatus;
 import com.lms.domain.asset.creation.CreateAsset;
-import com.lms.domain.asset.rebuild.RebuildAsset;
+// import com.lms.domain.asset.rebuild.RebuildAsset;
+import com.lms.repository.asset.AssetRepository;
+import com.lms.repository.config.RepositoryConfig;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +57,12 @@ public class AssetService implements AutoCloseable {
      * Asset 업로드를 처리하는 워커 스레드 풀.
      */
     private final ExecutorService workerExecutor;
-    
+   
+    /**
+     * Asset 데이터베이스 접근을 담당하는 Repository.
+     */
+    private final AssetRepository assetRepository;
+
     /**
      * 워커 스레드 개수 (기본값: 5).
      */
@@ -66,6 +73,7 @@ public class AssetService implements AutoCloseable {
     public AssetService() {
         this.uploadQueue = new LinkedBlockingQueue<>();
         this.workerExecutor = Executors.newFixedThreadPool(threadSize);
+        this.assetRepository = RepositoryConfig.assetRepository();
 
         createUploadWorkers();
     }
@@ -86,7 +94,9 @@ public class AssetService implements AutoCloseable {
             .map(Asset::create)
             .toList();
         
-        //TODO: repository에 asset들 상태 추가
+        //repository에 asset들 상태 추가
+        assetRepository.createAll(assetList);
+        
         //DB먼저 저장 하고-> 큐에 넘겨야지 큐가 바로 실패를 하더라도 DB에 update가능
 
         for(Asset asset:assetList){
@@ -107,15 +117,18 @@ public class AssetService implements AutoCloseable {
             new IllegalArgumentException("조회하고자 하는 컨텐츠 값이 비어있습니다.")
         );
 
-        // TODO: Repository에서 조회, List AssetServiceRebuild DTO find by contendId
+        // Repository에서 조회, List AssetServiceRebuild DTO find by contendId
+        List<Asset> assetList = assetRepository.findAll(contentId);
+
+
         // Repository의 return 은 notnull
-        List<AssetServiceRebuild> assetDTOList = null;
+        // List<AssetServiceRebuild> assetDTOList = null;
 
-        List<RebuildAsset> rebuildList = assetDTOList.stream()
-            .map(AssetServiceRebuild::toRebuildAsset).toList();
+        // List<RebuildAsset> rebuildList = assetDTOList.stream()
+        //     .map(AssetServiceRebuild::toRebuildAsset).toList();
 
-        List<Asset> assetList = rebuildList.stream()
-            .map(Asset::rebuild).toList();
+        // List<Asset> assetList = rebuildList.stream()
+        //     .map(Asset::rebuild).toList();
         
         return assetList;
     }
@@ -128,17 +141,19 @@ public class AssetService implements AutoCloseable {
      * @throw IllegalStateException Asset이 재시도 횟수 초과로 불가능한 경우
      */
     public void reUpload(Long contentId) {
-        // TODO: Repository에서 해당 contentId 를 가진 Asset 조회
+        // Repository에서 해당 contentId 를 가진 Asset 조회
+        List<Asset> assetList = assetRepository.findAll(contentId);
+        
         // assetRepository.findByContentID(contentId)
-        List<AssetServiceRebuild> assetDTOList = null;
+        // List<AssetServiceRebuild> assetDTOList = null;
 
-        List<RebuildAsset> rebuildList = Optional.ofNullable(
-            assetDTOList).orElse(List.of())
-            .stream().filter(dto -> dto.status() == UploadStatus.FAILED)
-            .map(AssetServiceRebuild::toRebuildAsset).toList();
+        // List<RebuildAsset> rebuildList = Optional.ofNullable(
+        //     assetDTOList).orElse(List.of())
+        //     .stream().filter(dto -> dto.status() == UploadStatus.FAILED)
+        //     .map(AssetServiceRebuild::toRebuildAsset).toList();
 
-        List<Asset> assetList = rebuildList.stream()
-            .map(Asset::rebuild).toList();
+        // List<Asset> assetList = rebuildList.stream()
+        //     .map(Asset::rebuild).toList();
 
 
         for (Asset asset:assetList) {
@@ -222,8 +237,8 @@ public class AssetService implements AutoCloseable {
 
                 asset.statusUpdateSuccess();
 
-                // TODO: Repository update
-                // assetRepository.update(asset);
+                // Repository update
+                assetRepository.update(asset);
 
             } catch (Exception e) { 
                 asset.statusUpdateFailed();
@@ -234,8 +249,8 @@ public class AssetService implements AutoCloseable {
                     assetAppendQueue(asset);
                 } else {
                     System.out.println("파일 업로드 실패 : " + asset.getOriginalFilename());
-                    // TODO: Repository 에 FAILED상태로 update
-                    // assetRepository.update(asset);
+                    // Repository 에 FAILED상태로 update
+                    assetRepository.update(asset);
                 }
             }
         }
