@@ -5,6 +5,7 @@ import com.lms.repository.config.DataSourceFactory;
 import com.lms.repository.config.RepositoryConfig;
 import com.lms.repository.exception.DatabaseException;
 import com.lms.repository.exception.error.DatabaseError;
+import com.lms.repository.notice.NoticeRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -26,7 +27,7 @@ public class NoticeService {
             ConnectionHolder.set(conn);
 
             Notice notice = Notice.create(body, courseId);
-            noticeRepository.create(notice);
+            noticeRepository.createNotice(notice);
             conn.commit();
             return notice;
         } catch (SQLException | DatabaseException e) {
@@ -40,8 +41,12 @@ public class NoticeService {
 
     public Notice findNoticeById(Long id) {
         try {
-            return noticeRepository.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
+            Notice notice = noticeRepository.findById(id);
+            if (notice == null) {
+                throw new NoSuchElementException("공지사항을 찾을 수 없습니다.");
+            }
+
+            return notice;
         } catch (DatabaseException e) {
             throw new DatabaseError("공지사항 조회 중 오류 발생", e);
         }
@@ -54,13 +59,15 @@ public class NoticeService {
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            Notice notice = noticeRepository.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("공지사항을 찾을 수 없습니다."));
+            Notice notice = noticeRepository.findById(id);
+            if (notice == null) {
+                throw new NoSuchElementException("공지사항을 찾을 수 없습니다.");
+            }
 
             // ✅ 도메인 로직을 통해 내부 상태 변경
             notice.updateBody(newBody);
 
-            noticeRepository.update(notice);
+            noticeRepository.updateNotice(notice);
             conn.commit();
 
         } catch (SQLException | DatabaseException e) {
@@ -80,7 +87,12 @@ public class NoticeService {
             conn.setAutoCommit(false);
             ConnectionHolder.set(conn);
 
-            noticeRepository.delete(id);
+            Notice notice = noticeRepository.findById(id);
+            if (notice == null) {
+                throw new NoSuchElementException("공지사항을 찾을 수 없습니다.");
+            }
+
+            noticeRepository.deleteNotice(notice);
             conn.commit();
         } catch (SQLException | DatabaseException e) {
             rollbackSafely(conn);
