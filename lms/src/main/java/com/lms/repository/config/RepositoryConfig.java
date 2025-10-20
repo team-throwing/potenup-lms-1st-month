@@ -1,5 +1,7 @@
 package com.lms.repository.config;
 
+import com.lms.repository.asset.AssetRepository;
+import com.lms.repository.asset.AssetRepositoryImpl;
 import com.lms.repository.category.CategoryRepository;
 import com.lms.repository.category.CategoryRepositoryImpl;
 import com.lms.repository.course.*;
@@ -18,6 +20,7 @@ public class RepositoryConfig {
     private static SectionRepository sectionRepository;
     private static ContentRepository contentRepository;
     private static NoticeRepository noticeRepository;
+    private static AssetRepository assetRepository;
 
     public static DbDialectExceptionConverter dbDialectExceptionConverter() {
         if (dbDialectExceptionConverter == null) {
@@ -73,5 +76,13 @@ public class RepositoryConfig {
         }
 
         return noticeRepository;
+    }
+
+    public static AssetRepository assetRepository() {
+        if (assetRepository == null) {
+            assetRepository = new AssetRepositoryImpl(dbUtils());
+        }
+
+        return assetRepository;
     }
 }

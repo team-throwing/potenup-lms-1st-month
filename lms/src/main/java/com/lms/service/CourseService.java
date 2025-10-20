@@ -169,6 +169,9 @@ public class CourseService {
             Course course = courseRepository.findById(courseId)
                     .orElseThrow(() -> new NoSuchElementException("코스를 찾을 수 없습니다."));
             course.addContent(contentSpec, sectionId);
+
+            // Asset 추가
+            
             courseRepository.update(course);
             conn.commit();
         } catch (SQLException | DatabaseException e) {
