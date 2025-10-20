@@ -4,8 +4,9 @@ import com.lms.domain.category.Category;
 import com.lms.repository.course.CourseRepository;
 import lombok.Builder;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -48,10 +49,10 @@ public record CourseInfoSearchFilter(
         String keyword,
         KeywordSearchScope keywordSearchScope,
         List<Category> categorySearchScope,
-        LocalDate createdAtFrom,
-        LocalDate createdAtTo,
-        LocalDate updatedAtFrom,
-        LocalDate updatedAtTo,
+        LocalDateTime createdAtFrom,
+        LocalDateTime createdAtTo,
+        LocalDateTime updatedAtFrom,
+        LocalDateTime updatedAtTo,
         String userName,
         Integer pageSize,
         Integer pageNum
@@ -59,31 +60,60 @@ public record CourseInfoSearchFilter(
     public CourseInfoSearchFilter {
         // To Do: keyword 길이 제한 및 문자 제한(공격 방지)
 
-        // To Do: keywordSearchScope 가 null 인 경우 기본값으로 초기화
+        // keywordSearchScope 가 null 인 경우 기본값으로 초기화
+        if (keywordSearchScope == null) {
+            keywordSearchScope = KeywordSearchScope.TITLE;
+        }
 
-        // To Do: categorySearchScope 내 id 중복 제거 및 불필요한 id 제거
+        // categorySearchScope 내 id 중복 제거 및 불필요한 id 제거
         /*
             [불필요한 id 검출]
             for each `category` in `list of categories`:
                 if `category` is subcategory and `category's parent` is in `the list`:
                     remove `category` in `the list`
          */
+        if (categorySearchScope != null) {
+            for (Category category : categorySearchScope) {
+                if (category.getParentId() == null) {
+                    continue;
+                }
 
-        // To Do: createdAtFrom 과 createdAtTo 의 순서 검증
+                for (Category parentCandidate : categorySearchScope) {
+                    if (Objects.equals(category.getParentId(), parentCandidate.getId())) {
+                        categorySearchScope.remove(category);
+                    }
+                }
+            }
+        }
 
-        // To Do: updatedAtFrom 과 updatedAtTo 의 순서 검증
+        // createdAtFrom 과 createdAtTo 의 순서 검증
+        if (createdAtFrom != null && createdAtTo != null && createdAtFrom.isAfter(createdAtTo)) {
+            throw new IllegalArgumentException("createdAtFrom 은 createdAtTo 보다 뒤의 시점일 수 없습니다.");
+        }
+
+        // updatedAtFrom 과 updatedAtTo 의 순서 검증
+        if (updatedAtFrom != null && updatedAtTo != null && updatedAtFrom.isAfter(updatedAtTo)) {
+            throw new IllegalArgumentException("updatedAtFrom 은 updatedAtTo 보다 뒤의 시점일 수 없습니다.");
+        }
 
         // To Do: userName 길이 제한 및 문자 제한(공격 방지)
 
-        // To Do: pageSize 값 범위 검증: 1 이상 100 이하
-        // To Do: pageSize 가 null 인 경우 기본값으로 초기화
+        // pageSize 가 null 인 경우 기본값으로 초기화
         if (pageSize == null) {
             pageSize = 10;
         }
-        // To Do: pageNum 값 범위 검증: 1 이상
-        // To Do: pageNum 이 null 인 경우 기본값으로 초기화
+        // pageSize 값 범위 검증: 1 이상 25 이하
+        if (pageSize < 1 || 25 < pageSize) {
+            throw new IllegalArgumentException("pageSize 가 1 보다 작거나 25 보다 큽니다.");
+        }
+
+        // pageNum 이 null 인 경우 기본값으로 초기화
         if (pageNum == null) {
             pageNum = 1;
+        }
+        // pageNum 값 범위 검증: 1 이상
+        if (pageNum < 1) {
+            throw new IllegalArgumentException("pageNum 가 1 보다 작습니다.");
         }
     }
 }

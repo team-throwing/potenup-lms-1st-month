@@ -50,7 +50,11 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 // SQL 와일드 카드에 값 채우기
                 pstmt.setString(1, category.getName());
                 pstmt.setString(2, category.getLevel().name());
-                pstmt.setInt(3, category.getParentId());
+                if (category.getParentId() == null) {
+                    pstmt.setNull(3, Types.INTEGER);
+                } else {
+                    pstmt.setInt(3, category.getParentId());
+                }
 
                 // SQL 실행
                 int result = pstmt.executeUpdate();
@@ -114,6 +118,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 Category found = null;
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
+                        Integer parentId = rs.getInt("parent_id");
                         found = Category.rebuild(
                                 // id
                                 rs.getInt("id"),
@@ -123,7 +128,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                                 rs.getString("level").equals("ONE")
                                         ? CategoryLevel.ONE : CategoryLevel.TWO,
                                 // parent id
-                                rs.getInt("parent_id")
+                                parentId == 0 ? null : parentId
                         );
                     }
                 }
@@ -341,11 +346,15 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 // SQL 와일드 카드에 값 채우기
                 pstmt.setString(1, category.getName());
                 pstmt.setString(2, category.getLevel().name());
-                pstmt.setInt(3, category.getParentId());
+                if (category.getParentId() == null) {
+                    pstmt.setNull(3, Types.INTEGER);
+                } else {
+                    pstmt.setInt(3, category.getParentId());
+                }
                 pstmt.setInt(4, category.getId());
 
                 // SQL 실행
-                boolean isNotUpdated = pstmt.executeUpdate(sql) <= 0;
+                boolean isNotUpdated = pstmt.executeUpdate() <= 0;
 
                 // 결과를 적절하게 처리
                 if (isNotUpdated) {
@@ -385,7 +394,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
                 pstmt.setInt(1, id);
 
                 // SQL 실행
-                boolean isNotDeleted = pstmt.executeUpdate(sql) <= 0;
+                boolean isNotDeleted = pstmt.executeUpdate() <= 0;
 
                 // 결과를 적절하게 처리
                 if (isNotDeleted) {
